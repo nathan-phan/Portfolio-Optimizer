@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import com.cs490.database.MySqlConnector;
 
 
+
 public class TestDAO {
 	public static ArrayList<String> testString() throws Exception{
 		ArrayList<String> strings = new ArrayList<String>();
@@ -25,9 +26,12 @@ public class TestDAO {
 				String result = rs.getString(1);
 				strings.add(result);
 			}
+			prepStmt.close();
+			
 		} catch(Exception e){
 			e.printStackTrace();
 			return null;
+			
 		} finally {
 			connection.close();
 		}

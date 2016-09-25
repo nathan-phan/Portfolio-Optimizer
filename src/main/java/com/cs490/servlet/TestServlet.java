@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.cs490.dao.TestDAO;
 
 @WebServlet(name="TestServlet", displayName="TestServlet", urlPatterns= {
-		"/test"
+		"/webapps7/test"
 })
 public class TestServlet extends HttpServlet {
 
@@ -26,7 +26,7 @@ public class TestServlet extends HttpServlet {
 		try {
 			ArrayList<String> strings = TestDAO.testString();
 			request.setAttribute("strings", strings);
-			request.getRequestDispatcher("/WEB-INF/Index.jsp").forward(request, response);
+			request.getRequestDispatcher("/Index.jsp").forward(request, response);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
