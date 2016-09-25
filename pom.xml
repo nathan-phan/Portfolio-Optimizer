@@ -5,7 +5,7 @@
 	<artifactId>portfolio-optimizer</artifactId>
 	<packaging>war</packaging>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>portfoptimizer Maven Webapp</name>
+	<name>portfolio-optimizer Maven Webapp</name>
 	<url>http://maven.apache.org</url>
 	<dependencies>
 		<dependency>
@@ -54,6 +54,11 @@
 			<artifactId>tomcat-dbcp</artifactId>
 			<version>7.0.42</version>
 		</dependency>
+		<dependency>
+			<groupId>org.jasypt</groupId>
+			<artifactId>jasypt</artifactId>
+			<version>1.9.2</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>Portfolio Optimizer</finalName>
@@ -78,8 +83,10 @@
 		</plugins>
 		<resources>
 			<resource>
-				<directory>/src/main/resources</directory>
-				<filtering>true</filtering>
+				<directory>${basedir}/src/main/resources</directory>
+				<includes>
+					<include>mysql.properties</include>
+				</includes>
 			</resource>
 		</resources>
 	</build>
