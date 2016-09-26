@@ -109,7 +109,13 @@
 		$(function() {
 			$('.stock-collection .collection-item').click(
 					function() {
+						$('.user-stocks-card').animate({
+							right: '550px'
+						})
 						$('.stock-preview-card').removeClass('display-none');
+			      $('.stock-preview-card').animate({
+			    	  right: '50px'
+			      })
 						var symbol = $(this).attr('data-symbol');
 						$.ajax({
 							url : '/webapps7/stock?symbol=' + symbol,

@@ -25,6 +25,7 @@ public class MainServlet extends HttpServlet {
 		if(request.getRequestURI().contains("/userview")){
 			try {
 				displayUserInfo(request, response);
+				return;
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -33,6 +34,7 @@ public class MainServlet extends HttpServlet {
 		if(request.getRequestURI().contains("/stock")){
 			try {
 				displayStockInfo(request, response);
+				return;
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}

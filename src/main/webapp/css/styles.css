@@ -58,15 +58,15 @@ body {
 
 .user-stocks-card {
 	position: absolute;
+	right: 50px;
 	left: 50px;
-	width: 60%;
 	top: 125px;
 }
 
 .stock-preview-card {
 	position: absolute;
-	right: 50px;
-	width: 30%;
+	right: -500px;
+	width: 400px;
 	top: 125px;
 }
 

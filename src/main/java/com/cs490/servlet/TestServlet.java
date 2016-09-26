@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.cs490.dao.TestDAO;
 
 @WebServlet(name="TestServlet", displayName="TestServlet", urlPatterns= {
 		"/webapps7/test"
@@ -24,9 +23,10 @@ public class TestServlet extends HttpServlet {
 	@Override																	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
-			ArrayList<String> strings = TestDAO.testString();
+			ArrayList<String> strings = new ArrayList<String>();
+			strings.add("hi");
 			request.setAttribute("strings", strings);
-			request.getRequestDispatcher("/Index.jsp").forward(request, response);
+			request.getRequestDispatcher("/index.jsp").forward(request, response);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
