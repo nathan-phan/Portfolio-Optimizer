@@ -42,39 +42,5 @@ public class MySqlConnector {
 		}
 		return conn;
 	} 
-	
-	public BasicDataSource  getDataSource() throws Exception {
-		BasicDataSource dataSource = null;
-		try {
-			InputStream in = getClass().getClassLoader().getResourceAsStream("mysql.properties");
-			Properties props = new Properties();
-			if (in != null) {
-				props.load(in);
-				String user = props.getProperty("user");
-				String encryptedPassword = props.getProperty("password");
-				String host = props.getProperty("host");
-				String driver = props.getProperty("driver");
-				Class.forName(driver).newInstance();
-				BasicTextEncryptor textEncryptor = new BasicTextEncryptor();
-				textEncryptor.setPassword("keyForPass"); 
-				String decryptedPassword = textEncryptor.decrypt(encryptedPassword);
-				dataSource = new BasicDataSource();
-				dataSource.setDriverClassName(driver);
-				dataSource.setUsername(user);
-				dataSource.setPassword(decryptedPassword);
-				dataSource.setUrl(host);
-				dataSource.setMaxIdle(5);
-				dataSource.setInitialSize(5);
-				dataSource.setValidationQuery("SELECT 1");
-			} else {
-				System.err.println("Uh oh properties file not found. Abort mission!");
-				return null;
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-			return null;
-		}
-		return dataSource;
-	} 
 
 }

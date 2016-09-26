@@ -12,8 +12,11 @@ import javax.servlet.http.HttpServletResponse;
 import com.cs490.dao.UserDAO;
 import com.cs490.vo.UserVO;
 
-@WebServlet(name="TestServlet", displayName="TestServlet", urlPatterns= {
-		"/webapps7/userview"
+import yahoofinance.Stock;
+import yahoofinance.YahooFinance;
+
+@WebServlet(name="MainServlet", displayName="MainServlet", urlPatterns= {
+		"/webapps7/userview","/webapps7/stock"
 })
 public class MainServlet extends HttpServlet {
 	private static final long serialVersionUID = 389807010932642772L;
@@ -22,6 +25,14 @@ public class MainServlet extends HttpServlet {
 		if(request.getRequestURI().contains("/userview")){
 			try {
 				displayUserInfo(request, response);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if(request.getRequestURI().contains("/stock")){
+			try {
+				displayStockInfo(request, response);
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
@@ -37,5 +48,16 @@ public class MainServlet extends HttpServlet {
 		
 		request.setAttribute("user", user);
 		request.getRequestDispatcher("/UserIndex.jsp").forward(request, response);
+	}
+	
+	private void displayStockInfo(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
+		String symbol = "";
+		if(request.getParameter("symbol") != null){
+			symbol = request.getParameter("symbol");
+		}
+		Stock stock = YahooFinance.get(symbol);
+		request.setAttribute("stock", stock);
+		response.setContentType("text/html");
+		request.getRequestDispatcher("/StockInfo.jsp").forward(request, response);
 	}
 }

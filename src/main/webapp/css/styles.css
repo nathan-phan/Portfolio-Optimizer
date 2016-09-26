@@ -31,7 +31,7 @@ body {
 	margin-left: 50px;
 }
 
-.tabs-container .tabs,.tabs-container .tab {
+.tabs-container .tabs, .tabs-container .tab {
 	height: 64px !important;
 }
 
@@ -49,7 +49,7 @@ body {
 .tab:hover {
 	font-style: italic;
 	color: 212121;
-} 
+}
 
 .indicator {
 	height: 3px !important;
@@ -65,31 +65,26 @@ body {
 
 .stock-preview-card {
 	position: absolute;
-  right: 50px;
-  width: 30%;
-  top: 185px;
+	right: 50px;
+	width: 30%;
+	top: 125px;
 }
 
 .lower-nav-bar {
 	z-index: 10;
 }
 
-.stock-preview-label {
-	position: absolute;
-  right: 50px;
-  width: 30%;
-  top: 145px;
-  height: 50px;
-  font-size: 1.3em;
-}
-
 .stock-collection li:hover {
-	background-color:#E5E5E5;
+	background-color: #E5E5E5;
 	cursor: pointer;
 }
 
+.display-none {
+	display: none;
+}
+
 .entry-name {
-	color:#1b5e20; 
+	color: #1b5e20;
 	font-weight: 500;
 }
 
@@ -113,4 +108,95 @@ body {
 
 #balance {
 	color: 0d47a1;
+}
+
+.stock-info-header {
+	font-weight: 500;
+}
+
+.stock-symbol {
+	font-weight: 600;
+	color: 1b5e20;
+	font-size: 1.4em
+}
+
+.stock-name {
+	font-weight: 500;
+	color: 212121;
+	fon-size: 1.2em;
+	position: relative;
+	top: -15px;
+}
+
+.red-text {
+	font-weight: 500;
+	color: red;
+}
+
+.green-text {
+	font-weight: 500;
+	color: green;
+}
+
+.stock-price {
+	font-weight: 500;
+	color: blue;
+}
+
+.nav-bar-buttons {
+	display: inline-block;
+	height: 64px;
+	position: absolute;
+	top: 10px;
+	right: 30px;
+}
+
+.nav-bar-button {
+	height: 70%;
+	position: relative;
+	top: -10px;
+	padding: 10px;
+}
+
+.nav-bar-button i {
+	position: relative;
+	top: -18px;
+	margin-right: 5px;
+	font-size: 1.7rem !important;
+}
+
+.nav-bar-button span {
+	position: relative;
+	top: -5px;
+	font-size: 0.9em;
+}
+
+.nav-bar-button:hover {
+	background-color: 757575;
+	color: white;
+}
+
+
+#viewer-search-input:focus {
+  background-color: white !important;
+  color: black;
+}
+
+.top-nav-bar .input-field {
+  width: 250px;
+  position: absolute;
+  right: 200px;
+  top: 7px;
+  height: 50px !important;
+  line-height: 50px;
+}
+
+#viewer-search-input {
+  border-bottom: 2px solid white;
+  font-size: 1em
+}
+
+.top-nav-bar .input-field i {
+  position: relative;
+  top: -5px;
 }
