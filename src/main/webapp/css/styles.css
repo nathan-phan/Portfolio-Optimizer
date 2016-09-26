@@ -1,0 +1,116 @@
+body {
+	font-size: 16px;
+	background-color: #E5E5E5;
+}
+
+.page-title {
+	font-size: 1.5em;
+	font-weight: 400;
+	margin-left: 20px;
+	margin-right: 20px;
+}
+
+.page-description {
+	font-size: 0.8em;
+}
+
+.user-options-block {
+	position: absolute;
+	top: 0;
+	right: 20px;
+}
+
+#user-dropdown {
+	position: absolute;
+	top: 64px !important;
+	right: 20px;
+}
+
+.tabs-container {
+	width: 30%;
+	margin-left: 50px;
+}
+
+.tabs-container .tabs,.tabs-container .tab {
+	height: 64px !important;
+}
+
+.tab a {
+	padding: 8px 10px;
+	color: 757575 !important;
+	font-size: 0.9em;
+}
+
+.tab a.active {
+	color: 212121 !important;
+	font-weight: 500;
+}
+
+.tab:hover {
+	font-style: italic;
+	color: 212121;
+} 
+
+.indicator {
+	height: 3px !important;
+	background-color: #1976d2 !important;
+}
+
+.user-stocks-card {
+	position: absolute;
+	left: 50px;
+	width: 60%;
+	top: 125px;
+}
+
+.stock-preview-card {
+	position: absolute;
+  right: 50px;
+  width: 30%;
+  top: 185px;
+}
+
+.lower-nav-bar {
+	z-index: 10;
+}
+
+.stock-preview-label {
+	position: absolute;
+  right: 50px;
+  width: 30%;
+  top: 145px;
+  height: 50px;
+  font-size: 1.3em;
+}
+
+.stock-collection li:hover {
+	background-color:#E5E5E5;
+	cursor: pointer;
+}
+
+.entry-name {
+	color:#1b5e20; 
+	font-weight: 500;
+}
+
+.entry-symbol {
+	font-weight: 500;
+	color: #1976d2;
+}
+
+.stock-collection .secondary-content {
+	position: relative;
+	top: -10px;
+}
+
+.balance-label {
+	font-weight: 500;
+}
+
+.balance-row {
+	float: right !important;
+}
+
+#balance {
+	color: 0d47a1;
+}
