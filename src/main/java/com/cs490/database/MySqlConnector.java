@@ -5,7 +5,6 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Properties;
 
-import org.apache.commons.dbcp2.BasicDataSource;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 public class MySqlConnector {

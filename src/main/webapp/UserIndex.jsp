@@ -20,8 +20,8 @@
 		<nav class='blue darken-2'>
 			<div class="nav-wrapper">
 				<div class='top-bar-text'>
-					<span class='page-title'>Portfolio Optimizer</span> <span
-						class='page-description'> A CS490 final project </span>
+					<span class='page-title'>Portfolio Gorilla</span> <span
+						class='page-description'> Dragging your money through economy hardship </span>
 				</div>
 				<form>
 					<div class="input-field">
