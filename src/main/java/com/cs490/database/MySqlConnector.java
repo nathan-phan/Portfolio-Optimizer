@@ -5,6 +5,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Properties;
 
+import javax.mail.Message;
+import javax.mail.internet.MimeMessage;
+
 import org.jasypt.util.text.BasicTextEncryptor;
 
 public class MySqlConnector {

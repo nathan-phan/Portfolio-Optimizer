@@ -6,23 +6,35 @@
 	<display-name>Portfolio Optimizer</display-name>
 	<description>CS490 project</description>
 	<servlet>
-    <servlet-name>TestServlet</servlet-name>
-    <servlet-class>com.cs490.servlet.TestServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-     <servlet-name>TestServlet</servlet-name>
-     <url-pattern>/webapps7/test</url-pattern>
-  </servlet-mapping>
-  <servlet>
+		<servlet-name>TestServlet</servlet-name>
+		<servlet-class>com.cs490.servlet.TestServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>TestServlet</servlet-name>
+		<url-pattern>/webapps7/test</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>MainServlet</servlet-name>
+		<servlet-class>com.cs490.servlet.MainServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/stock</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/register</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
     <servlet-name>MainServlet</servlet-name>
-    <servlet-class>com.cs490.servlet.MainServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-     <servlet-name>MainServlet</servlet-name>
-     <url-pattern>/webapps7/userview</url-pattern>
+    <url-pattern>/webapps7/login</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-     <servlet-name>MainServlet</servlet-name>
-     <url-pattern>/webapps7/stock</url-pattern>
+    <servlet-name>MainServlet</servlet-name>
+    <url-pattern>/webapps7/forgotpass</url-pattern>
   </servlet-mapping>
 </web-app>

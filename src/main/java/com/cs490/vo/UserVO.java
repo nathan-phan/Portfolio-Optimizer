@@ -1,45 +1,40 @@
 package com.cs490.vo;
 
-import java.math.BigDecimal;
-import java.util.LinkedHashMap;
-
-import yahoofinance.Stock;
+import java.util.ArrayList;
 
 public class UserVO {
 	private String userName;
-	private BigDecimal originalBalance;
-	private BigDecimal balance;
-	private LinkedHashMap<Stock, Integer> userStocks;
+	private String email;
+	private ArrayList<PortfolioVO> userPortfolios;
 	
 	public UserVO() {
 		userName = "";
-		balance = new BigDecimal(0);
-		originalBalance = new BigDecimal(0);
-		userStocks = new LinkedHashMap<Stock, Integer>();
+		email = "";
+		userPortfolios = new ArrayList<PortfolioVO>();
 	}
 	
 	public String getUserName() {
 		return userName;
 	}
+	
 	public void setUserName(String userName) {
 		this.userName = userName;
 	}
-	public BigDecimal getBalance() {
-		return balance;
+
+	public String getEmail() {
+		return email;
 	}
-	public void setBalance(BigDecimal balance) {
-		this.balance = balance;
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
-	public BigDecimal getOriginalBalance() {
-		return originalBalance;
+
+	public ArrayList<PortfolioVO> getUserPortfolios() {
+		return userPortfolios;
 	}
-	public void setOriginalBalance(BigDecimal originalBalance) {
-		this.originalBalance = originalBalance;
+
+	public void setUserPortfolios(ArrayList<PortfolioVO> userPortfolios) {
+		this.userPortfolios = userPortfolios;
 	}
-	public LinkedHashMap<Stock, Integer> getUserStocks() {
-		return userStocks;
-	}
-	public void setUserStocks(LinkedHashMap<Stock, Integer> stocks) {
-		this.userStocks = stocks;
-	}
+	
 }

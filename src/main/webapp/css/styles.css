@@ -3,6 +3,16 @@ body {
 	background-color: #E5E5E5;
 }
 
+@font-face {
+	font-family: AdamCgPro;
+	src: url("/fonts/ADAM.CG PRO.otf") format("opentype");
+}
+
+.login-body {
+	background-image: url("/images/cubes.png");
+	overflow-x: hidden;
+}
+
 .page-title {
 	font-size: 1.5em;
 	font-weight: 400;
@@ -176,27 +186,96 @@ body {
 	color: white;
 }
 
-
 #viewer-search-input:focus {
-  background-color: white !important;
-  color: black;
+	background-color: white !important;
+	color: black;
 }
 
 .top-nav-bar .input-field {
-  width: 250px;
-  position: absolute;
-  right: 210px;
-  top: 7px;
-  height: 50px !important;
-  line-height: 50px;
+	width: 250px;
+	position: absolute;
+	right: 210px;
+	top: 7px;
+	height: 50px !important;
+	line-height: 50px;
 }
 
 #viewer-search-input {
-  border-bottom: 2px solid white;
-  font-size: 1em
+	border-bottom: 2px solid white;
+	font-size: 1em
 }
 
 .top-nav-bar .input-field i {
+	position: relative;
+	top: -5px;
+}
+
+.hand {
+	cursor: pointer;
+}
+
+.login-app-title-row {
+	height: 50px !important;
+	font-family: 'Fugaz One';
+	font-size: 1.7em;
+	font-weight: 500;
+}
+
+.sub-title-row {
+	height: 40px;
+	font-size: 0.9em;
+	margin-bottom: 15px; 
+	font-weight: 500;
+}
+
+.custom-toast {
+  position: fixed;
+  top: -500px;
+  left: 0;
+  right: 0;
+  margin: auto;
+  width: 600px;
+  border-radius: 10px;
+  opacity: 0.8;
+  z-index: 9999;
+}
+
+.bottom-toast {
+  position: fixed;
+  right: -2000px;
+  bottom: 30px;
+  width: 600px;
+  border-radius: 10px;
+  opacity: 0.8;
+  z-index: 9999;
+}
+
+.toast-text {
   position: relative;
-  top: -5px;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  text-align: center;
+  padding: 10px 20px;
+}
+
+.toast-dismiss {
+  margin-right: 10px;
+}
+
+#pwd-forgot, #register {
+	font-size: 0.8em;
+}
+
+.login-card {
+  position: relative;
+  top: 150px;
+  margin-bottom: 20px;
+  padding: 0 !important;
+}
+
+#request-acc {
+	margin-top: 15px;
 }
