@@ -282,3 +282,9 @@ body {
 #request-acc {
 	margin-top: 15px;
 }
+
+@media only screen and (max-width: 1400px) {
+  .login-card {
+  margin-top: 5%;
+  }
+}
