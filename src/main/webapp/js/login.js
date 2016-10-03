@@ -30,9 +30,6 @@ $('#back-button-forgot').click(function() {
 })
 
 $('#back-button-request').click(function() {
-	$('.login-card').animate({
-		top : '150px'
-	})
 	$('#register-form')[0].reset();
 	$('#register-form').slideUp();
 	$('#login-form').slideDown();
@@ -42,9 +39,6 @@ $('#back-button-request').click(function() {
 })
 
 $('#register').click(function() {
-	$('.login-card').animate({
-		top : '100px'
-	})
 	$('#login-form').slideUp();
 	$('#register-form').show();
 	setTimeout(function() {

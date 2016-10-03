@@ -16,11 +16,10 @@
 </head>
 <body class='blue login-body'>
 	<div class='container'>
-		<div class='row'>
 
 			<!--  BEGINNING OF CENTER CARD  -->
 
-			<div class='col s4 offset-s4 card login-card'>
+			<div class='card login-card'>
 				<div class='card-content'>
 
 					<!--  BEGINNING OF LOGIN FORM - DEFAULT FORM INPUT -->
@@ -165,7 +164,6 @@
 
 		<!-- END OF LOGIN TOAST -->
 
-	</div>
 	<script src="/js/login.js"></script>
 	<script>
 	$('.toast-dismiss').click(function() {

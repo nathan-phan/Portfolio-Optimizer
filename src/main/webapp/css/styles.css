@@ -270,9 +270,12 @@ body {
 }
 
 .login-card {
-  position: relative;
-  top: 150px;
-  margin-bottom: 20px;
+  position: absolute;
+  width: 500px;
+  left: 0;
+  right:0;
+  margin: auto;
+  margin-top: 10%;
   padding: 0 !important;
 }
 
