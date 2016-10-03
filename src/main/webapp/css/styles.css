@@ -3,11 +3,6 @@ body {
 	background-color: #E5E5E5;
 }
 
-@font-face {
-	font-family: AdamCgPro;
-	src: url("/fonts/ADAM.CG PRO.otf") format("opentype");
-}
-
 .login-body {
 	background-image: url("/images/cubes.png");
 	overflow-x: hidden;
@@ -66,18 +61,11 @@ body {
 	background-color: #1976d2 !important;
 }
 
-.user-stocks-card {
-	position: absolute;
-	right: 50px;
-	left: 50px;
-	top: 125px;
-}
-
-.stock-preview-card {
-	position: absolute;
-	right: -500px;
-	width: 400px;
-	top: 125px;
+.user-portfolio-card {
+	max-width: 1000px;
+	left: 0;
+	right: 0;
+	margin: 20px;
 }
 
 .lower-nav-bar {
@@ -103,56 +91,6 @@ body {
 	color: #1976d2;
 }
 
-.stock-collection .secondary-content {
-	position: relative;
-	top: -10px;
-}
-
-.balance-label {
-	font-weight: 500;
-}
-
-.balance-row {
-	float: right !important;
-}
-
-#balance {
-	color: 0d47a1;
-}
-
-.stock-info-header {
-	font-weight: 500;
-}
-
-.stock-symbol {
-	font-weight: 600;
-	color: 1b5e20;
-	font-size: 1.4em
-}
-
-.stock-name {
-	font-weight: 500;
-	color: 212121;
-	fon-size: 1.2em;
-	position: relative;
-	top: -15px;
-}
-
-.red-text {
-	font-weight: 500;
-	color: red;
-}
-
-.green-text {
-	font-weight: 500;
-	color: green;
-}
-
-.stock-price {
-	font-weight: 500;
-	color: blue;
-}
-
 .nav-bar-buttons {
 	display: inline-block;
 	height: 64px;
@@ -164,7 +102,6 @@ body {
 .nav-bar-button {
 	height: 70%;
 	position: relative;
-	top: -10px;
 	padding: 10px;
 }
 
@@ -216,53 +153,52 @@ body {
 
 .login-app-title-row {
 	height: 50px !important;
-	font-family: 'Fugaz One';
-	font-size: 1.7em;
+	font-family: 'Fugaz One'; font-size: 1.7em;
 	font-weight: 500;
 }
 
 .sub-title-row {
 	height: 40px;
 	font-size: 0.9em;
-	margin-bottom: 15px; 
+	margin-bottom: 15px;
 	font-weight: 500;
 }
 
 .custom-toast {
-  position: fixed;
-  top: -500px;
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 600px;
-  border-radius: 10px;
-  opacity: 0.8;
-  z-index: 9999;
+	position: fixed;
+	top: -500px;
+	left: 0;
+	right: 0;
+	margin: auto;
+	width: 600px;
+	border-radius: 10px;
+	opacity: 0.8;
+	z-index: 9999;
 }
 
 .bottom-toast {
-  position: fixed;
-  right: -2000px;
-  bottom: 30px;
-  width: 600px;
-  border-radius: 10px;
-  opacity: 0.8;
-  z-index: 9999;
+	position: fixed;
+	right: -2000px;
+	bottom: 30px;
+	width: 600px;
+	border-radius: 10px;
+	opacity: 0.8;
+	z-index: 9999;
 }
 
 .toast-text {
-  position: relative;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  text-align: center;
-  padding: 10px 20px;
+	position: relative;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
+	text-align: center;
+	padding: 10px 20px;
 }
 
 .toast-dismiss {
-  margin-right: 10px;
+	margin-right: 10px;
 }
 
 #pwd-forgot, #register {
@@ -270,21 +206,41 @@ body {
 }
 
 .login-card {
-  position: absolute;
-  width: 500px;
-  left: 0;
-  right:0;
-  margin: auto;
-  margin-top: 10%;
-  padding: 0 !important;
+	position: absolute;
+	width: 500px;
+	left: 0;
+	right: 0;
+	margin: auto;
+	margin-top: 10%;
+	padding: 0 !important;
 }
 
 #request-acc {
 	margin-top: 15px;
 }
 
+label[data-error]:after {
+	white-space: nowrap;
+}
+
+.portfolio-collection {
+	max-width: 1200px;
+	min-with: 1000px;
+	left: 0;
+	right: 0;
+	margin: 5px auto;
+}
+
+.portfolio-header {
+	height: 100px;
+}
+
+.portfolio-body {
+	background-color: white;
+}
+
 @media only screen and (max-width: 1400px) {
-  .login-card {
-  margin-top: 5%;
-  }
+	.login-card {
+		margin-top: 5%;
+	}
 }

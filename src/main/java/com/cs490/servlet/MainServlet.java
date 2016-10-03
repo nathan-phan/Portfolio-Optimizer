@@ -1,17 +1,11 @@
 package com.cs490.servlet;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.Properties;
+import java.util.ArrayList;
 
-import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
 import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -21,8 +15,9 @@ import javax.servlet.http.HttpSession;
 
 import org.jasypt.util.text.BasicTextEncryptor;
 
+import com.cs490.dao.PortfolioDAO;
 import com.cs490.dao.UserDAO;
-import com.cs490.vo.UserVO;
+import com.cs490.vo.PortfolioVO;
 import com.google.gson.JsonObject;
 
 import yahoofinance.Stock;
@@ -30,7 +25,7 @@ import yahoofinance.YahooFinance;
 
 @WebServlet(name="MainServlet", displayName="MainServlet", urlPatterns= {
 		"/webapps7/stock", "/webapps7/", "/webapps7/register", "/webapps7/forgotpass",
-		"/webapps7/login"
+		"/webapps7/login", "/webapps7/index", "/webapps7/portfolio/add"
 })
 public class MainServlet extends HttpServlet {
 	private static final long serialVersionUID = 389807010932642772L;
@@ -55,6 +50,14 @@ public class MainServlet extends HttpServlet {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
+		}
+		if(request.getRequestURI().contains("/index")){
+				try {
+					displayMainScreen(request, response);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				return;
 		}
 	}
 
@@ -84,6 +87,15 @@ public class MainServlet extends HttpServlet {
 		if(request.getRequestURI().contains("/forgotpass")){
 			try {
 				resetUserPassword(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		
+		if(request.getRequestURI().contains("/portfolio/add")){
+			try {
+				addPortfolio(request, response);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -215,6 +227,52 @@ public class MainServlet extends HttpServlet {
 			return;
 		}
 		json.addProperty("status", "success");
+		response.getWriter().write(json.toString());
+		return;
+	}
+	
+	private void displayMainScreen (HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException, SQLException{
+		HttpSession session = request.getSession();
+		if(session.getAttribute("userName") == null) {
+			response.sendRedirect("/webapps7/");
+			return;
+		}
+		String userName = (String) session.getAttribute("userName");
+		ArrayList<PortfolioVO> ports = UserDAO.findUserPorfolio(userName);
+		request.setAttribute("ports",ports);
+		request.getRequestDispatcher("/UserIndex.jsp").forward(request, response);
+	}
+	
+	private void addPortfolio(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException{
+		String userName = "",  password = "", portfolioName = "";
+		JsonObject json = new JsonObject();
+		response.setContentType("application/json");
+		HttpSession session = request.getSession();
+		if(session.getAttribute("userName") == null) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to retrieve username");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		userName = (String) session.getAttribute("userName");
+		if(request.getParameter("portfolioName") != null) {
+			portfolioName = request.getParameter("portfolioName");
+		}
+		if(PortfolioDAO.checkDuplicatePortfolioName(portfolioName, userName)) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "There is already another portfolio with the same name for this account");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		
+		if(!PortfolioDAO.addPortfolio(portfolioName, userName)) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to add portfolio into database");
+			response.getWriter().write(json.toString());
+			return;
+		}		
+		json.addProperty("status", "success");
+		json.addProperty("successMessage", "Portfolio created");
 		response.getWriter().write(json.toString());
 		return;
 	}

@@ -2,7 +2,6 @@
 	pageEncoding="ISO-8859-1"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
-
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -14,6 +13,7 @@
 <script src="/js/materialize.min.js"></script>
 <link rel="stylesheet" href="/css/materialize.min.css">
 <link rel="stylesheet" href="/css/styles.css">
+<script type="text/javascript" src="/js/script.js"></script>
 </head>
 <body>
 	<div class="navbar-fixed top-nav-bar">
@@ -21,7 +21,8 @@
 			<div class="nav-wrapper">
 				<div class='top-bar-text'>
 					<span class='page-title'>Portfolio Gorilla</span> <span
-						class='page-description'> Dragging your money through economy hardship </span>
+						class='page-description'> Dragging your money through
+						economy hardship </span>
 				</div>
 				<form>
 					<div class="input-field">
@@ -33,7 +34,8 @@
 				<ul class="right user-options-block">
 					<li><a class="dropdown-button" href="#!"
 						data-activates="user-dropdown"><i class="material-icons left"
-							id='user-icon'>&#xE853;</i> <c:out value='${user.userName}' /><i
+							id='user-icon'>&#xE853;</i> <c:out
+								value='${sessionScope.userName}' /><i
 							class="material-icons right" id='dropdown-arrow'>arrow_drop_down</i></a></li>
 				</ul>
 				<ul id="user-dropdown" class="dropdown-content">
@@ -46,90 +48,83 @@
 	</div>
 	<div class="navbar-fixed lower-nav-bar">
 		<nav class='white'>
-			<div class='tabs-container manual-index-tabs'>
-				<ul class="tabs">
-					<li class="tab col s4" id='current-stock-tab'><a
-						href="#current-stock-content">Current Stocks</a></li>
-					<li class="tab  col s4" id='history-tab'><a
-						href="#history-content">Purchase history</a></li>
-				</ul>
-			</div>
 			<div class='nav-bar-buttons right'>
-				<a class="waves-effect btn-flat  nav-bar-button" id='glossary-icon'><i
-					class=" material-icons left">add</i> <span
-					class='nav-bar-button-label'>Buy</span> </a> <a
-					class="waves-effect btn-flat  nav-bar-button" id='glossary-icon'><i
-					class=" material-icons left">remove</i> <span
-					class='nav-bar-button-label'>Sell</span> </a> <a
-					class="waves-effect btn-flat  nav-bar-button" id='glossary-icon'><i
-					class=" material-icons left">file_download</i> <span
-					class='nav-bar-button-label'>Export</span> </a> <a
-					class="waves-effect btn-flat  nav-bar-button" id='glossary-icon'><i
-					class=" material-icons left">assignment</i> <span
-					class='nav-bar-button-label'>Optimizer</span> </a>
+				<a id='add-portfolio-button' href='#add-port-modal'
+					class="waves-effect btn red nav-bar-button modal-trigger"> <span
+					class='nav-bar-button-label'>New Portfolio</span>
+				</a>
 			</div>
 		</nav>
 	</div>
-	<div id='current-stock-content'>
-		<div class='card user-stocks-card'>
-			<div class='card-content'>
-				<c:choose>
-					<c:when test="${empty user.userStocks }">
-			     User has no stock right now.
-			   </c:when>
-					<c:otherwise>
-						<ul class="stock-collection collection">
-							<c:forEach items="${user.userStocks}" var='entry'
-								varStatus="loop">
-								<li class="collection-item" data-symbol='${entry.key.symbol}'><span
-									class="title entry-name"><c:out
-											value='${entry.key.name}' /> <span class='entry-symbol'>(<c:out
-												value='${entry.key.symbol}' />)
-									</span></span> <br> <c:out value='${entry.key.quote.price}' />
-									<div class="secondary-content">${entry.value}</div></li>
-							</c:forEach>
-						</ul>
-					</c:otherwise>
-				</c:choose>
-				<div class='row balance-row'>
-					<div class='balance-label col s12'>
-						Current balance: &nbsp; <span id='balance'><fmt:formatNumber
-								value="${user.balance}" type="currency" /></span>
-					</div>
+	<div id='current-portfolio-content'>
+		<c:choose>
+			<c:when test="${empty ports }">
+				<div class='card user-portfolio-card'>
+					<div class='card-content'>User has no portfolio right now.</div>
+				</div>
+			</c:when>
+			<c:otherwise>
+				<ul class="collapsible portfolio-collection" data-collapsible="accordion">
+					<c:forEach items="${ports}" var='port'>
+						<li>
+							<div class="collapsible-header portfolio-header">
+								<c:out value="${port.name }"/>
+							</div>
+							<div class="collapsible-body portfolio-body">
+								<p>Lorem ipsum dolor sit amet.</p>
+							</div>
+						</li>
+					</c:forEach>
+				</ul>
+			</c:otherwise>
+		</c:choose>
+
+	</div>
+
+	<!-- BEGINNING OF ADD PORTFOLIO MODAL -->
+
+	<div id="add-port-modal" class="modal">
+		<div class="modal-content">
+			<div class="row">
+				<div class="col s12">
+					<h5>Add New Portfolio</h5>
+				</div>
+			</div>
+			<div class="row ">
+				<div class="col s12">
+					<form id='add-port-form'>
+						<div class="row">
+							<div class="input-field col s12">
+								<input type="hidden" value="${sessionScope.userName}"
+									name="userName"> <input id="add-port-name-input"
+									length=255 maxlength=255 name="portfolioName" type="text"
+									class="required-input" placeholder=""> <label
+									id='add-port-name-label' for="add-port-name-input"
+									data-error="">Portfolio Name</label>
+							</div>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>
-		<c:if test='${not empty user.userStocks }'>
-			<div class='display-none card stock-preview-card'>
-				<div class='card-content'></div>
-			</div>
-		</c:if>
+		<div class="modal-footer">
+			<a id='add-submit' class="modal-action btn-flat">Add</a> <a
+				class="modal-action modal-close btn-flat">Cancel</a>
+		</div>
 	</div>
+
+	<!-- END OF ADD PORTFOLIO MODAL -->
 	<script>
-		$(function() {
-			$('.stock-collection .collection-item').click(
-					function() {
-						$('.user-stocks-card').animate({
-							right: '550px'
-						})
-						$('.stock-preview-card').removeClass('display-none');
-			      $('.stock-preview-card').animate({
-			    	  right: '50px'
-			      })
-						var symbol = $(this).attr('data-symbol');
-						$.ajax({
-							url : '/webapps7/stock?symbol=' + symbol,
-							type : 'GET',
-							dataType : 'text/html',
-							async : false,
-							cache : false,
-							complete : function(data) {
-								$('.stock-preview-card .card-content').html(
-										data.responseText);
-							}
-						})
-					})
+		$('.modal-trigger').leanModal({
+			dismissible : false
 		})
+
+		$('#add-submit').click(
+				function() {
+					$('#add-port-name-input').val(
+							$('#add-port-name-input').val().trim());
+					addNewPortfolio();
+				})
 	</script>
 </body>
 </html>

@@ -133,7 +133,8 @@ $('#login-form')
 				dataType : 'json',
 				success : function(data) {
 					if (data.status == 'success') {
-						alert(data.successMessage)
+						location.href="/webapps7/index";
+						return;
 					} else {
 						$('#username-input').addClass('invalid');
 						$('#username-label-login').attr(

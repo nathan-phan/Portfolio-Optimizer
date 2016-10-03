@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Properties;
 
@@ -21,6 +22,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 import com.cs490.database.MySqlConnector;
+import com.cs490.vo.PortfolioVO;
 import com.cs490.vo.UserVO;
 
 import yahoofinance.Stock;
@@ -230,4 +232,35 @@ public class UserDAO {
 		return true;
 	}
 	
+	public static ArrayList<PortfolioVO> findUserPorfolio (String userName) throws SQLException {
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		ArrayList<PortfolioVO> portfolios = new ArrayList<PortfolioVO>();
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT portfolio_id, portfolio_name, current_balance FROM portfolios WHERE user_id = ?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setString(1, userName);
+			ResultSet rs = prepStmt.executeQuery();
+			while(rs.next()){
+				PortfolioVO port = new PortfolioVO();
+				port.setId(rs.getInt(1));
+				port.setName(rs.getString(2));
+				port.setBalance(rs.getBigDecimal(3));
+				port.setUserName(userName);
+				portfolios.add(port);
+			}
+		} catch(Exception e){
+			e.printStackTrace();
+			return null;
+		} finally {
+			connection.close();
+		}
+		return portfolios;
+	}
 }
