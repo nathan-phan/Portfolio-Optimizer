@@ -15,7 +15,7 @@
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>MainServlet</servlet-name>
-		<url-pattern>/webapps7/</url-pattern>
+		<url-pattern>/webapps7/authenticate</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>MainServlet</servlet-name>

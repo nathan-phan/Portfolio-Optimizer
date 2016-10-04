@@ -24,8 +24,8 @@ import yahoofinance.Stock;
 import yahoofinance.YahooFinance;
 
 @WebServlet(name="MainServlet", displayName="MainServlet", urlPatterns= {
-		"/webapps7/stock", "/webapps7/", "/webapps7/register", "/webapps7/forgotpass",
-		"/webapps7/login", "/webapps7/index", "/webapps7/portfolio/add"
+		"/webapps7/stock", "/webapps7/login", "/webapps7/register", "/webapps7/forgotpass",
+		"/webapps7/authenticate", "/webapps7/index", "/webapps7/portfolio/add"
 })
 public class MainServlet extends HttpServlet {
 	private static final long serialVersionUID = 389807010932642772L;
@@ -35,7 +35,7 @@ public class MainServlet extends HttpServlet {
 		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); 
 		response.setHeader("Pragma", "no-cache");
 		response.setHeader("Expires", "0");
-		if(request.getRequestURI().equals("/webapps7/")){
+		if(request.getRequestURI().equals("/webapps7/login")){
 			try {
 				showLoginScreen(request, response);
 			} catch (Exception e) {
@@ -75,7 +75,7 @@ public class MainServlet extends HttpServlet {
 			return;
 		}
 		
-		if(request.getRequestURI().contains("/login")){
+		if(request.getRequestURI().contains("/authenticate")){
 			try {
 				checkUserCredential(request, response);
 			} catch (Exception e) {

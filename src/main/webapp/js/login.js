@@ -125,7 +125,7 @@ $('#login-form')
 			}
 			$
 			.ajax({
-				url : '/webapps7/login',
+				url : '/webapps7/authenticate',
 				type : 'POST',
 				data : $('#login-form').serialize(),
 				async : false,
