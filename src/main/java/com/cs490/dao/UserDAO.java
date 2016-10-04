@@ -253,6 +253,8 @@ public class UserDAO {
 				port.setName(rs.getString(2));
 				port.setBalance(rs.getBigDecimal(3));
 				port.setUserName(userName);
+				LinkedHashMap<Stock, Integer> stocks = PortfolioDAO.findStocksByPortfolioId(rs.getInt(1));
+				port.setStocks(stocks);
 				portfolios.add(port);
 			}
 		} catch(Exception e){

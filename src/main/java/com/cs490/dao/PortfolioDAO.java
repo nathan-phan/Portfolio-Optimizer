@@ -5,8 +5,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 
 import com.cs490.database.MySqlConnector;
+
+import yahoofinance.Stock;
 
 public class PortfolioDAO {
 	public static boolean checkDuplicatePortfolioName(String portName, String userName) throws SQLException {
@@ -62,4 +65,33 @@ public class PortfolioDAO {
 			connection.close();
 		}
 	}
+	
+	public static LinkedHashMap<Stock, Integer> findStocksByPortfolioId(int portId) throws SQLException {
+		Connection connection = null;
+		LinkedHashMap<Stock, Integer> stocks = new LinkedHashMap<Stock, Integer>();
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT stock_symbol, shares FROM portfolio_stocks WHERE portfolio_id=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, portId);
+			ResultSet rs = prepStmt.executeQuery();
+			while(rs.next()){
+				Stock stock = new Stock(rs.getString(1));
+				stocks.put(stock, rs.getInt(2));
+			}
+			prepStmt.close();
+			return stocks;
+		} catch(Exception e){
+			e.printStackTrace();
+			return stocks;
+		} finally {
+			connection.close();
+		}
+	}
+	
 }

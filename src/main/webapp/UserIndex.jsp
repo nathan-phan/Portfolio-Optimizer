@@ -64,18 +64,40 @@
 				</div>
 			</c:when>
 			<c:otherwise>
-				<ul class="collapsible portfolio-collection" data-collapsible="accordion">
+				<ul class="collection portfolio-collection z-depth-1">
 					<c:forEach items="${ports}" var='port'>
-						<li>
-							<div class="collapsible-header portfolio-header">
-								<c:out value="${port.name }"/>
+						<li class="collection-item portfolio-entry hand">
+							<div class='row'>
+								<div class='col s9 port-title'>
+									<c:out value="${port.name }" />
+								</div>
+								<div class='col s3'>
+									<a href="#!" class="port-entry-icons"><i
+										class="material-icons">delete</i></a> <a href="#!"
+										class="port-entry-icons"><i class="material-icons">edit</i></a>
+								</div>
 							</div>
-							<div class="collapsible-body portfolio-body">
-								<p>Lorem ipsum dolor sit amet.</p>
+							<div class='row'>
+								<div class='col s9 port-stock'>
+									<span class='stock-label'>Stocks: </span>
+									<c:choose>
+										<c:when test='${empty port.stocks }'>
+										None
+										</c:when>
+										<c:otherwise>
+											<c:forEach items="${port.stocks}" var="stock">
+												<c:out value='${stock.symbol}' />
+											</c:forEach>
+										</c:otherwise>
+									</c:choose>
+								</div>
+								<div class='col s3 port-balance'>
+									<span class='entry-balance'><fmt:formatNumber value="${port.balance}" type="currency"/></span><span class='balance-label'>Balance: &nbsp;</span> 
+								</div>
 							</div>
-						</li>
 					</c:forEach>
 				</ul>
+
 			</c:otherwise>
 		</c:choose>
 
