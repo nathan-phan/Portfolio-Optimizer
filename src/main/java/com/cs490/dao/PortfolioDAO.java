@@ -8,8 +8,10 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 
 import com.cs490.database.MySqlConnector;
+import com.cs490.vo.PortfolioVO;
 
 import yahoofinance.Stock;
+import yahoofinance.YahooFinance;
 
 public class PortfolioDAO {
 	public static boolean checkDuplicatePortfolioName(String portName, String userName) throws SQLException {
@@ -89,6 +91,41 @@ public class PortfolioDAO {
 		} catch(Exception e){
 			e.printStackTrace();
 			return stocks;
+		} finally {
+			connection.close();
+		}
+	}
+
+	public static PortfolioVO getPortfolioById(int portfolioId) throws SQLException {
+		Connection connection = null;
+		PortfolioVO port = new PortfolioVO();
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT portfolio_name, current_balance FROM portfolios WHERE portfolio_id=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, portfolioId);
+			ResultSet rs = prepStmt.executeQuery();
+			while(rs.next()){
+				port.setName(rs.getString(1));
+				port.setBalance(rs.getBigDecimal(2));
+				port.setId(portfolioId);
+				LinkedHashMap<Stock, Integer> stocks = findStocksByPortfolioId(portfolioId);
+				port.setStocks(stocks);
+				for(Stock stock:stocks.keySet()){
+					stock = YahooFinance.get(stock.getSymbol());
+				}
+				port.setStocks(stocks);
+			}
+			prepStmt.close();
+			return port;
+		} catch(Exception e){
+			e.printStackTrace();
+			return port;
 		} finally {
 			connection.close();
 		}

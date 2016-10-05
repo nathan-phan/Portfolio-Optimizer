@@ -25,7 +25,8 @@ import yahoofinance.YahooFinance;
 
 @WebServlet(name="MainServlet", displayName="MainServlet", urlPatterns= {
 		"/webapps7/stock", "/webapps7/login", "/webapps7/register", "/webapps7/forgotpass",
-		"/webapps7/authenticate", "/webapps7/index", "/webapps7/portfolio/add"
+		"/webapps7/authenticate", "/webapps7/index", "/webapps7/portfolio/add",
+		"/webapps7/portfolio/view"
 })
 public class MainServlet extends HttpServlet {
 	private static final long serialVersionUID = 389807010932642772L;
@@ -52,12 +53,21 @@ public class MainServlet extends HttpServlet {
 			}
 		}
 		if(request.getRequestURI().contains("/index")){
-				try {
-					displayMainScreen(request, response);
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-				return;
+			try {
+				displayMainScreen(request, response);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+
+		if(request.getRequestURI().contains("/portfolio/view")){
+			try {
+				displayPortfolio(request, response);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return;
 		}
 	}
 
@@ -74,7 +84,7 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-		
+
 		if(request.getRequestURI().contains("/authenticate")){
 			try {
 				checkUserCredential(request, response);
@@ -83,7 +93,7 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-		
+
 		if(request.getRequestURI().contains("/forgotpass")){
 			try {
 				resetUserPassword(request, response);
@@ -92,7 +102,7 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-		
+
 		if(request.getRequestURI().contains("/portfolio/add")){
 			try {
 				addPortfolio(request, response);
@@ -101,7 +111,7 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-		
+
 	}
 
 	private void displayStockInfo(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
@@ -166,7 +176,7 @@ public class MainServlet extends HttpServlet {
 		return;
 	}	
 
-	
+
 	private void checkUserCredential(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException, AddressException, MessagingException {
 		String userName = "",  password = "";
 		JsonObject json = new JsonObject();
@@ -230,11 +240,11 @@ public class MainServlet extends HttpServlet {
 		response.getWriter().write(json.toString());
 		return;
 	}
-	
+
 	private void displayMainScreen (HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException, SQLException{
 		HttpSession session = request.getSession();
 		if(session.getAttribute("userName") == null) {
-			response.sendRedirect("/webapps7/");
+			request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
 			return;
 		}
 		String userName = (String) session.getAttribute("userName");
@@ -242,9 +252,9 @@ public class MainServlet extends HttpServlet {
 		request.setAttribute("ports",ports);
 		request.getRequestDispatcher("/UserIndex.jsp").forward(request, response);
 	}
-	
+
 	private void addPortfolio(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException{
-		String userName = "",  password = "", portfolioName = "";
+		String userName = "", portfolioName = "";
 		JsonObject json = new JsonObject();
 		response.setContentType("application/json");
 		HttpSession session = request.getSession();
@@ -264,7 +274,7 @@ public class MainServlet extends HttpServlet {
 			response.getWriter().write(json.toString());
 			return;
 		}
-		
+
 		if(!PortfolioDAO.addPortfolio(portfolioName, userName)) {
 			json.addProperty("status", "failed");
 			json.addProperty("errorMessage", "Failed to add portfolio into database");
@@ -275,5 +285,15 @@ public class MainServlet extends HttpServlet {
 		json.addProperty("successMessage", "Portfolio created");
 		response.getWriter().write(json.toString());
 		return;
+	}
+
+	private void displayPortfolio(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
+		int portfolioId = -1;
+		if(request.getParameter("id") != null) {
+			portfolioId = Integer.parseInt(request.getParameter("id"));
+		}
+		PortfolioVO portfolio = PortfolioDAO.getPortfolioById(portfolioId);
+		request.setAttribute("portfolio", portfolio);
+		request.getRequestDispatcher("/PortfolioView.jsp").forward(request, response);
 	}
 }
