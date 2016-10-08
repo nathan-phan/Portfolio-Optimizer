@@ -300,7 +300,7 @@ label[data-error]:after {
 }
 
 .portfolio-overview-card {
-  margin: 5px 20px;
+	margin: 5px 20px;
 }
 
 .portfolio-overview-card ul {
@@ -322,7 +322,7 @@ label[data-error]:after {
 }
 
 .allowed-stocks-header-row {
-	 margin: 10px 0;
+	margin: 10px 0;
 }
 
 .allowed-stock-entry {
@@ -336,5 +336,8 @@ label[data-error]:after {
 @media only screen and (max-width: 1400px) {
 	.login-card {
 		margin-top: 5%;
+	}
+	.allowed-stock-entry {
+		font-size: 0.7em;
 	}
 }

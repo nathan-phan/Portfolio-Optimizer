@@ -55,7 +55,7 @@
 					<li class="tab col s4" id='current-stock-tab'><a
 						href="#current-stock-content">Current Stocks</a></li>
 					<li class="tab  col s4" id='history-tab'><a
-						href="#history-content">Transaction history</a></li>
+						href="#history-content">History</a></li>
 				</ul>
 			</div>
 			<div class='nav-bar-buttons right'>
