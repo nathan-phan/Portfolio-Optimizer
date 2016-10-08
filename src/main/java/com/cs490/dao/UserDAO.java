@@ -243,7 +243,7 @@ public class UserDAO {
 		ArrayList<PortfolioVO> portfolios = new ArrayList<PortfolioVO>();
 		PreparedStatement prepStmt = null;
 		try {
-			String query = "SELECT portfolio_id, portfolio_name, current_balance FROM portfolios WHERE user_id = ?";
+			String query = "SELECT portfolio_id, portfolio_name, current_balance FROM portfolios WHERE user_id = ? AND flag=0";
 			prepStmt = connection.prepareStatement(query);
 			prepStmt.setString(1, userName);
 			ResultSet rs = prepStmt.executeQuery();

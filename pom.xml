@@ -79,6 +79,16 @@
 			<artifactId>javax.mail-api</artifactId>
 			<version>1.5.5</version>
 		</dependency>
+		<dependency>
+			<groupId>com.google.gdata</groupId>
+			<artifactId>core</artifactId>
+			<version>1.47.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.api.client</groupId>
+			<artifactId>google-api-client-googleapis-auth-oauth</artifactId>
+			<version>1.2.3-alpha</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<finalName>Portfolio Optimizer</finalName>

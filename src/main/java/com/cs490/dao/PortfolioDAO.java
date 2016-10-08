@@ -31,7 +31,7 @@ public class PortfolioDAO {
 		}
 		PreparedStatement prepStmt = null;
 		try {
-			String query = "SELECT portfolio_name FROM portfolios WHERE user_id=? AND portfolio_name=?";
+			String query = "SELECT portfolio_name FROM portfolios WHERE user_id=? AND portfolio_name=? and flag=0";
 			prepStmt = connection.prepareStatement(query);
 			prepStmt.setString(1, userName);
 			prepStmt.setString(2, portName);
@@ -205,7 +205,8 @@ public class PortfolioDAO {
 		}
 		PreparedStatement prepStmt = null;
 		try {
-			String query =  "UPDATE portfolios SET current_balance = (current_balance - ?) WHERE portfolio_id = ?";
+			//amount is negative here. Probably shouldnt have made this method
+			String query =  "UPDATE portfolios SET current_balance = (current_balance + ?) WHERE portfolio_id = ?";
 			prepStmt = connection.prepareStatement(query);
 			prepStmt.setBigDecimal(1, amount);
 			prepStmt.setInt(2, id);
@@ -290,6 +291,38 @@ public class PortfolioDAO {
 		return result;
 	}
 	
+	public static boolean recordWithdraw(int id, BigDecimal amount) throws SQLException{
+		boolean result = false;
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+			BigDecimal currentBalance = findPortfolioBalance(id);
+			String query =  "INSERT INTO history (transaction_type, money_amount, balance, time, portfolio_id) VALUES (?,?,?,?,?)";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setString(1, "Withdraw");
+			prepStmt.setBigDecimal(2, amount);
+			prepStmt.setBigDecimal(3, currentBalance);
+			prepStmt.setString(4, timeStamp);
+			prepStmt.setInt(5, id);
+			prepStmt.executeUpdate();
+			prepStmt.close();
+			result = true;
+		} catch(Exception e) {
+			e.printStackTrace();
+			return result;
+		} finally {
+			connection.close();
+		}
+		return result;
+	}
+	
 	public static ArrayList<RecordVO> getPortfolioRecord(int id) throws SQLException {
 		Connection connection = null;
 		ArrayList<RecordVO> records = new  ArrayList<RecordVO>();
@@ -320,6 +353,30 @@ public class PortfolioDAO {
 		} catch(Exception e){
 			e.printStackTrace();
 			return records;
+		} finally {
+			connection.close();
+		}
+	}
+	
+	public static boolean deletePortfolio(int id) throws SQLException {
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "UPDATE portfolios SET flag=1 WHERE portfolio_id=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, id);
+			prepStmt.executeUpdate();
+			prepStmt.close();
+			return true;
+		} catch(Exception e){
+			e.printStackTrace();
+			return false;
 		} finally {
 			connection.close();
 		}

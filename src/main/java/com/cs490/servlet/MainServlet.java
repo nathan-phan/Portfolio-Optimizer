@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.mail.MessagingException;
@@ -23,6 +24,7 @@ import com.cs490.dao.PortfolioDAO;
 import com.cs490.dao.UserDAO;
 import com.cs490.vo.PortfolioVO;
 import com.cs490.vo.RecordVO;
+import com.google.gdata.client.spreadsheet.SpreadsheetService;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -36,7 +38,7 @@ import yahoofinance.histquotes.HistoricalQuote;
 		"/webapps7/portfolio/view", "/webapps7/logout",
 		"/webapps7/stock/buy", "/webapps7/stock/sell",
 		"/webapps7/withdraw","/webapps7/deposit",
-		"/webapps7/portfolio/delete", "/webapps7/portfolio/history"
+		"/webapps7/portfolio/delete", "/webapps7/portfolio/history","webapps7/sheet/test"
 })
 public class MainServlet extends HttpServlet {
 	private static final long serialVersionUID = 389807010932642772L;
@@ -49,12 +51,12 @@ public class MainServlet extends HttpServlet {
 			+ "INFY,ITC,KOTAKBANK,LT,LUPIN,M&amp;M,MARUTI,NTPC,ONGC,PNB,"
 			+ "POWERGRID,RELIANCE,SBIN,SUNPHARMA,TATAMOTORS,TATAPOWER,"
 			+ "TATASTEEL,TCS,TECHM,ULTRATECH,VEDL,WIPRO,YESBANK,ZEEL,"
-			+ "SGX: Z74,SGX: S58,SGX: U14,SGX: D05,SGX: O39,SGX: U11,"
-			+ "SGX: F34,SGX: BN4,SGX: H78,SGX: G13,SGX: C07,SGX: C31,SGX: "
-			+ "C6L,SGX: Y92,SGX: MC0,SGX: C09,SGX: S63,SGX: S51,SGX: U96,"
-			+ "SGX: NS8U,SGX: E5H,SGX: C61U,SGX: S68,SGX: C38U,SGX: A17U,"
-			+ "SGX: T39,SGX: CC3,SGX: BS6,SGX: S59,SGX: C52,SGX: EB5,"
-			+ "SGX: S08,SGX: T82U,SGX: K71U,SGX: N03,SSRX,JOBS,ATV,ACTS,"
+			+ "Z74,S58,U14,D05,O39,U11,"
+			+ "F34,BN4,H78,G13,C07,C31,"
+			+ "C6L,Y92,MC0,C09,S63,S51,U96,"
+			+ "NS8U,E5H,C61U,S68,C38U,A17U,"
+			+ "T39,CC3,BS6,S59,C52,EB5,"
+			+ "S08,T82U,K71U,N03,SSRX,JOBS,ATV,ACTS,"
 			+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
 			+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
 			+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
@@ -107,7 +109,7 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-		
+
 		if(request.getRequestURI().contains("/portfolio/history")){
 			if(!checkLoggedIn(request, response)){
 				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
@@ -120,7 +122,20 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-		
+
+		if(request.getRequestURI().contains("/sheet/test")){
+			if(!checkLoggedIn(request, response)){
+				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+				return;
+			}
+			try {
+				doSheetTest(request, response);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+
 		if(request.getRequestURI().contains("/logout")){
 			try {
 				logOut(request, response);
@@ -171,9 +186,28 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
+
 		if(request.getRequestURI().contains("/deposit")){
 			try {
 				depositMoney(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+
+		if(request.getRequestURI().contains("/withdraw")){
+			try {
+				withdrawMoney(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+
+		if(request.getRequestURI().contains("/portfolio/delete")){
+			try {
+				deletePortfolio(request, response);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -359,6 +393,33 @@ public class MainServlet extends HttpServlet {
 		if(request.getParameter("id") != null) {
 			portfolioId = Integer.parseInt(request.getParameter("id"));
 		}
+		String domesticStocks = "MMM,AXP,AAPL,BA,CAT,CVX,CSCO,KO,DIS,DD,XOM,"
+				+ "GE,GS,HD,IBM,INTC,JNJ,JPM,MCD,MRK,MSFT,NKE,PFE,PG,TRV,UTX,"
+				+ "UNH,VZ,V,WMT";
+		String straitStocks = "Z74.si,S58.si,U14.si,D05.si,O39.si,U11.si,"
+				+ "F34.si,BN4.si,H78.si,G13.si,C07.si,C31.si,"
+				+ "C6L.si,Y92.si,MC0.si,C09.si,S63.si,S51.si,U96.si,"
+				+ "NS8U.si,E5H.si,C61U.si,S68.si,C38U.si,A17U.si,"
+				+ "T39.si,CC3.si,BS6.si,S59.si,C52.si,EB5.si,"
+				+ "S08.si,T82U.si,K71U.si,N03.si";
+		String [] straitArray = straitStocks.split(",");
+		String niftyStocks = "ACC,ADANIPORTS,AMBUJACEM,ASIANPAINT,AXISBANK,"
+				+ "BAJAJ-AUTO,BANKBARODA,BHARTIARTL,BHEL,BOSCHLTD,BPCL,CAIRN,"
+				+ "CIPLA,COALINDIA,DRREDDY,GAIL,GRASIM,HCLTECH,HDFC,HDFCBANK"
+				+ ",HEROMOTOCO,HINDALCO,HINDUNILVR,ICICIBANK,IDEA,INDUSINDBK,"
+				+ "INFY,ITC,KOTAKBANK,LT,LUPIN,M&M,MARUTI,NTPC,ONGC,PNB,"
+				+ "POWERGRID,RELIANCE,SBIN,SUNPHARMA,TATAMOTORS,TATAPOWER,"
+				+ "TATASTEEL,TCS,TECHM,ULTRATECH,VEDL,WIPRO,YESBANK,ZEEL";
+		String adrStocks = "SSRX,JOBS,ATV,ACTS,"
+				+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
+				+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
+				+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
+				+ "LDK,LTON,LFT,MR,NTES,EDU,NINE,NED,PWRD,PTR,SOL,GAME,SNDA,"
+				+ "SCR,SHI,SOLF,SPRD,STP,NCTY,TCM,TSL,VIT,VIMC,VISN,WH,WX,XSEL,"
+				+ "XIN,YZC,YGE";
+		String[] adrArray = adrStocks.split(",");
+		String[] niftyArray = niftyStocks.split(",");
+		String[] domesticArray = domesticStocks.split(",");
 		String overseaStocks = "ACC,ADANIPORTS,AMBUJACEM,ASIANPAINT,AXISBANK,"
 				+ "BAJAJ-AUTO,BANKBARODA,BHARTIARTL,BHEL,BOSCHLTD,BPCL,CAIRN,"
 				+ "CIPLA,COALINDIA,DRREDDY,GAIL,GRASIM,HCLTECH,HDFC,HDFCBANK"
@@ -366,26 +427,28 @@ public class MainServlet extends HttpServlet {
 				+ "INFY,ITC,KOTAKBANK,LT,LUPIN,M&M,MARUTI,NTPC,ONGC,PNB,"
 				+ "POWERGRID,RELIANCE,SBIN,SUNPHARMA,TATAMOTORS,TATAPOWER,"
 				+ "TATASTEEL,TCS,TECHM,ULTRATECH,VEDL,WIPRO,YESBANK,ZEEL,"
-				+ "SGX: Z74,SGX: S58,SGX: U14,SGX: D05,SGX: O39,SGX: U11,"
-				+ "SGX: F34,SGX: BN4,SGX: H78,SGX: G13,SGX: C07,SGX: C31,SGX: "
-				+ "C6L,SGX: Y92,SGX: MC0,SGX: C09,SGX: S63,SGX: S51,SGX: U96,"
-				+ "SGX: NS8U,SGX: E5H,SGX: C61U,SGX: S68,SGX: C38U,SGX: A17U,"
-				+ "SGX: T39,SGX: CC3,SGX: BS6,SGX: S59,SGX: C52,SGX: EB5,"
-				+ "SGX: S08,SGX: T82U,SGX: K71U,SGX: N03,SSRX,JOBS,ATV,ACTS,"
+				+ "Z74.si,S58.si,U14.si,D05.si,O39.si,U11.si,"
+				+ "F34.si,BN4.si,H78.si,G13.si,C07.si,C31.si,"
+				+ "C6L.si,Y92.si,MC0.si,C09.si,S63.si,S51.si,U96.si,"
+				+ "NS8U.si,E5H.si,C61U.si,S68.si,C38U.si,A17U.si,"
+				+ "T39.si,CC3.si,BS6.si,S59.si,C52.si,EB5.si,"
+				+ "S08.si,T82U.si,K71U.si,N03.si,SSRX,JOBS,ATV,ACTS,"
 				+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
 				+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
 				+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
 				+ "LDK,LTON,LFT,MR,NTES,EDU,NINE,NED,PWRD,PTR,SOL,GAME,SNDA,"
 				+ "SCR,SHI,SOLF,SPRD,STP,NCTY,TCM,TSL,VIT,VIMC,VISN,WH,WX,XSEL,"
 				+ "XIN,YZC,YGE";
+		String[] overseaArray = overseaStocks.split(",");
 		request.setAttribute("overseas", overseaStocks);
 		PortfolioVO portfolio = PortfolioDAO.getPortfolioById(portfolioId);
+		LinkedHashMap<Stock, Integer> stocks = portfolio.getStocks();
 		request.setAttribute("portfolio", portfolio);
 		ArrayList<RecordVO> records = PortfolioDAO.getPortfolioRecord(portfolioId);
 		request.setAttribute("records", records);
 		request.getRequestDispatcher("/PortfolioView.jsp").forward(request, response);
 	}
-	
+
 	private void depositMoney(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
 		JsonObject json = new JsonObject();
 		response.setContentType("application/json");
@@ -415,7 +478,37 @@ public class MainServlet extends HttpServlet {
 		response.getWriter().write(json.toString());
 		return;
 	}
-	
+
+	private void withdrawMoney(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
+		JsonObject json = new JsonObject();
+		response.setContentType("application/json");
+		BigDecimal amount;
+		int id = -1;
+		if(request.getParameter("amount") == null || request.getParameter("id") == null ) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Invalid parameter provided.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		amount = new BigDecimal(request.getParameter("amount"));
+		id = Integer.parseInt(request.getParameter("id"));
+		if(!PortfolioDAO.removeMoneyFromPortfolio(id, amount)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to withdraw money to porfolio.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		if(!PortfolioDAO.recordWithdraw(id, amount)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to add record to history.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		json.addProperty("status", "success");
+		response.getWriter().write(json.toString());
+		return;
+	}
+
 	private void getRecords(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
 		JsonObject json = new JsonObject();
 		response.setContentType("application/json");
@@ -429,12 +522,43 @@ public class MainServlet extends HttpServlet {
 		id = Integer.parseInt(request.getParameter("id"));
 		ArrayList<RecordVO> records = PortfolioDAO.getPortfolioRecord(id);
 		Gson gson = new Gson();
-    String recordJson = gson.toJson(records);
-    json.addProperty("status", "success");
+		String recordJson = gson.toJson(records);
+		json.addProperty("status", "success");
 		json.addProperty("records", recordJson);
 		response.getWriter().write(json.toString());
 		return;
 	}
+
+	private void deletePortfolio(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
+		JsonObject json = new JsonObject();
+		response.setContentType("application/json");
+		int id = -1;
+		if(request.getParameter("id") == null ) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Invalid parameter provided.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		id = Integer.parseInt(request.getParameter("id"));
+		if(!PortfolioDAO.deletePortfolio(id)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to delete Portfolio.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		json.addProperty("status", "success");
+		response.getWriter().write(json.toString());
+		return;
+	}
+
+	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
+		String id = "1EBHWq75uRIt2BDdtqZ_rKDukeFbH-j2sekwkTqhxruU";
+		String url = "https://docs.google.com/spreadsheets/d/1EBHWq75uRIt2BDdtqZ_rKDukeFbH-j2sekwkTqhxruU";
+		SpreadsheetService service = new SpreadsheetService(
+				"google-spreadsheet");
+
+	}
+
 
 	private void logOut(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
 		HttpSession session=request.getSession();  

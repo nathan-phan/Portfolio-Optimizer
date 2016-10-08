@@ -66,19 +66,19 @@
 			<c:otherwise>
 				<ul class="collection portfolio-collection z-depth-1">
 					<c:forEach items="${ports}" var='port'>
-						<li class="collection-item portfolio-entry hand" data-id="${port.id}">
+						<li class="collection-item portfolio-entry" data-id="${port.id}">
 							<div class='row'>
-								<div class='col s9 port-title'>
+								<div class='col s9 port-title hand' data-id="${port.id}">
 									<c:out value="${port.name }" />
 								</div>
 								<div class='col s3'>
-									<a href="#!" class="port-entry-icons"><i
-										class="material-icons">delete</i></a> <a href="#!"
-										class="port-entry-icons"><i class="material-icons">edit</i></a>
+									<a href="#delete-modal" class="port-entry-icons modal-trigger delete-button" data-name='${port.name}' data-id="${port.id}"><i
+										class="material-icons">delete</i></a> <a href="#edit-modal" data-id="${port.id}" 
+										class="port-entry-icons modal-trigger edit-button"><i class="material-icons">edit</i></a>
 								</div>
 							</div>
 							<div class='row'>
-								<div class='col s9 port-stock'>
+								<div class='col s9 port-stock' data-id="${port.id}">
 									<span class='stock-label'>Stocks: </span>
 									<c:choose>
 										<c:when test='${empty port.stocks }'>
@@ -133,12 +133,31 @@
 			</div>
 		</div>
 		<div class="modal-footer">
-			<a id='add-submit' class="modal-action modal-close btn-flat">Add</a> <a
+			<a id='add-submit' class="modal-action btn-flat">Add</a> <a
 				class="modal-action modal-close btn-flat">Cancel</a>
 		</div>
 	</div>
 
 	<!-- END OF ADD PORTFOLIO MODAL -->
+	
+	<div id="delete-modal" class="modal">
+    <div class="modal-content">
+      <div class="row">
+        <div class="col s12">
+          <h5>Delete Portfolio</h5>
+        </div>
+      </div>
+      <div class="row ">
+        <div class="col s12">
+          Are you sure you want to delete <span id='deleted-port-name'></span> ?
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <a id='delete-submit' data-id="" class="modal-action modal-close btn-flat">Delete</a> <a
+        class="modal-action modal-close btn-flat">Cancel</a>
+    </div>
+  </div>
 	<script>
 		$('.modal-trigger').leanModal({
 			dismissible : false
@@ -150,10 +169,19 @@
 							$('#add-port-name-input').val().trim());
 					addNewPortfolio();
 				})
-		$('.portfolio-entry').click(function(){
+		$('.port-title, .port-stock').click(function(){
 			var id = $(this).attr('data-id');
 			location.href = '/webapps7/portfolio/view?id=' + id;
-		})		
+		})
+		
+		$('.delete-button').click(function(){
+			$('#deleted-port-name').html($(this).attr('data-name'));
+			$('#delete-submit').attr('data-id', $(this).attr('data-id'));
+		})
+		
+		$('#delete-submit').click(function(){
+			deletePortfolio($(this).attr('data-id'));
+		})
 	</script>
 </body>
 </html>

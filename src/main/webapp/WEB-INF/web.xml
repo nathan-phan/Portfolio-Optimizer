@@ -69,4 +69,8 @@
     <servlet-name>MainServlet</servlet-name>
     <url-pattern>/webapps7/portfolio/history</url-pattern>
   </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>MainServlet</servlet-name>
+    <url-pattern>/webapps7/sheet/test</url-pattern>
+  </servlet-mapping>
 </web-app>

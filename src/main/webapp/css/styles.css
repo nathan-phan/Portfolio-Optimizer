@@ -332,15 +332,21 @@ label[data-error]:after {
 .history-card {
 	position: absolute;
 	top: 130px;
-	min-width: 1000px;
-	width: 90%;
-	left: 0;
-	right: 0;
-	margin: 5px auto;
+	left: 50px;
+	right: 50px;
 }
 
 .bold {
 	font-weight: 500;
+}
+
+.history-table tbody tr:hover {
+	background-color: #E5E5E5;
+}
+
+#add-stock-button{
+	postion: relative;
+	top: -5px;
 }
 
 @media only screen and (max-width: 1400px) {

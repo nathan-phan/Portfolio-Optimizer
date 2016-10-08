@@ -66,7 +66,8 @@
 					id='deposit-button' href="#deposit-modal"><i
 					class=" material-icons left">add</i> <span
 					class='nav-bar-button-label'>Deposit</span> </a> <a
-					class="waves-effect btn-flat  nav-bar-button" id='withdraw-button'><i
+					class="waves-effect btn-flat  nav-bar-button modal-trigger"
+					href='#withdraw-modal' id='withdraw-button'><i
 					class=" material-icons left">remove</i> <span
 					class='nav-bar-button-label'>Withdraw</span> </a> <a
 					class="waves-effect btn-flat  nav-bar-button" id='export-button'><i
@@ -84,7 +85,8 @@
 				<c:when test="${empty portfolio.stocks }">
 					<div class='card empty-portfolio-card'>
 						<div class='card-content'>Looks like this portfolio is
-							empty.</div>
+							empty. <a id='add-stock-button' href='#add-stock-modal'
+          class="waves-effect btn red modal-trigger right"> <span>Add stock</span></a></div>
 					</div>
 				</c:when>
 				<c:otherwise>
@@ -185,11 +187,11 @@
 					<c:when test="${empty records}"> There is no transaction history for this portfolio.
 	     </c:when>
 					<c:otherwise>
-						<table>
+						<table class='history-table'>
 							<thead>
 								<tr>
 									<th>Type</th>
-									<th>Amount (money)</th>
+									<th>Amount</th>
 									<th class='center'>Stock</th>
 									<th class='center'>Shares</th>
 									<th>Price</th>
@@ -198,17 +200,20 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr>
-									<c:forEach items="${records}" var="record">
+								<c:forEach items="${records}" var="record">
+									<tr>
 										<td>${record.type}</td>
-										<td><fmt:formatNumber value="${record.amount}" type="currency" /></td>
-										<td class='center'><c:out value='${record.symbol}'/></td>
+										<td><fmt:formatNumber value="${record.amount}"
+												type="currency" /></td>
+										<td class='center'><c:out value='${record.symbol}' /></td>
 										<td class='center'>${record.shares eq 0? '' : record.shares }</td>
-										<td><fmt:formatNumber value="${record.price}" type="currency" /></td>
-										<td><fmt:formatNumber value="${record.balance}" type="currency" /></td>
-										<td><c:out value='${record.time }'/></td>
-									</c:forEach>
-								</tr>
+										<td><fmt:formatNumber value="${record.price}"
+												type="currency" /></td>
+										<td><fmt:formatNumber value="${record.balance}"
+												type="currency" /></td>
+										<td><c:out value='${record.time }' /></td>
+									</tr>
+								</c:forEach>
 							</tbody>
 							<c:forEach items="${records}" var="record">
 
@@ -250,8 +255,35 @@
 		</div>
 	</div>
 
-
-
+	<div id="withdraw-modal" class="modal">
+		<div class="modal-content">
+			<div class="row">
+				<div class="col s12">
+					<h5>Withdraw Money</h5>
+				</div>
+			</div>
+			<div class="row ">
+				<div class="col s12">
+					<form id='deposit-form' onSubmit="return false;">
+						<div class="row">
+							<div class="col s12">Please enter the money amount you wish
+								to withdraw</div>
+							<br> <br>
+							<div class="input-field col s12">
+								<input id="withdraw-input" name="amount" type="text"
+									class="required-input" placeholder="Enter an amount"> <label
+									id='withdraw-label' for="deposit-input" data-error="">Amount</label>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<a id='withdraw-submit' class="modal-action btn-flat">Withdraw</a>
+			<a class="modal-action modal-close btn-flat">Cancel</a>
+		</div>
+	</div>
 
 	<script>
 		$(function() {
@@ -272,8 +304,35 @@
 							return;
 						} else {
 							depositMoney(amount, id);
+							$('#deposit-modal').closeModal();
 						}
-					})
+					});
+
+			$('#withdraw-submit').click(
+					function() {
+						var id = '${param.id}';
+						$('#withdraw-input').val(
+								$('#withdraw-input').val().trim());
+						var amount = $('#withdraw-input').val();
+						var regex = /^\d+(?:\.\d{0,2})?$/;
+						if (!amount.match(regex)) {
+							$('#withdraw-input').addClass('invalid');
+							$('#withdraw-label').attr('data-error',
+									"Invalid money value");
+							return;
+						}
+						var amountFloat = parseFloat(amount);
+						var balanceFloat = parseFloat('${portfolio.balance}');
+						if (amountFloat > balanceFloat) {
+							$('#withdraw-input').addClass('invalid');
+							$('#withdraw-label').attr('data-error',
+									"Withdraw amount exceeds balance");
+							return;
+						}
+						amount = '-' + amount;
+						withdrawMoney(amount, id);
+						$('#withdraw-modal').closeModal();
+					});
 		})
 	</script>
 </body>
