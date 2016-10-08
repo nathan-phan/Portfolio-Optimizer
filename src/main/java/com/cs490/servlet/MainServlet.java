@@ -22,6 +22,8 @@ import org.jasypt.util.text.BasicTextEncryptor;
 import com.cs490.dao.PortfolioDAO;
 import com.cs490.dao.UserDAO;
 import com.cs490.vo.PortfolioVO;
+import com.cs490.vo.RecordVO;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import yahoofinance.Stock;
@@ -105,7 +107,20 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-
+		
+		if(request.getRequestURI().contains("/portfolio/history")){
+			if(!checkLoggedIn(request, response)){
+				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+				return;
+			}
+			try {
+				getRecords(request, response);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		
 		if(request.getRequestURI().contains("/logout")){
 			try {
 				logOut(request, response);
@@ -366,6 +381,8 @@ public class MainServlet extends HttpServlet {
 		request.setAttribute("overseas", overseaStocks);
 		PortfolioVO portfolio = PortfolioDAO.getPortfolioById(portfolioId);
 		request.setAttribute("portfolio", portfolio);
+		ArrayList<RecordVO> records = PortfolioDAO.getPortfolioRecord(portfolioId);
+		request.setAttribute("records", records);
 		request.getRequestDispatcher("/PortfolioView.jsp").forward(request, response);
 	}
 	
@@ -395,6 +412,26 @@ public class MainServlet extends HttpServlet {
 			return;
 		}
 		json.addProperty("status", "success");
+		response.getWriter().write(json.toString());
+		return;
+	}
+	
+	private void getRecords(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
+		JsonObject json = new JsonObject();
+		response.setContentType("application/json");
+		int id = -1;
+		if(request.getParameter("id") == null ) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Invalid parameter provided.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		id = Integer.parseInt(request.getParameter("id"));
+		ArrayList<RecordVO> records = PortfolioDAO.getPortfolioRecord(id);
+		Gson gson = new Gson();
+    String recordJson = gson.toJson(records);
+    json.addProperty("status", "success");
+		json.addProperty("records", recordJson);
 		response.getWriter().write(json.toString());
 		return;
 	}

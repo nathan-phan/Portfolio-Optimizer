@@ -115,10 +115,13 @@
 						<div class="col s12 display-none">
 							<span class='bold'>Violation</span>:
 							<ul class='bold'>
-								<li id='violation-1' class='display-none'>Minimum 7 stocks, maximum 10.</li>
-								<li id='violation-2' class='display-none'>70% of the portfolio value should be in domestic stocks
-									and 30% in overseas stocks.</li>
-								<li id='violation-3' class='display-none'>No more than 10% cash in the portfolio at any time</li>
+								<li id='violation-1' class='display-none'>Minimum 7 stocks,
+									maximum 10.</li>
+								<li id='violation-2' class='display-none'>70% of the
+									portfolio value should be in domestic stocks and 30% in
+									overseas stocks.</li>
+								<li id='violation-3' class='display-none'>No more than 10%
+									cash in the portfolio at any time</li>
 							</ul>
 						</div>
 					</div>
@@ -174,7 +177,47 @@
 				</div>
 			</div>
 		</div>
+	</div>
+	<div id='history-content'>
+		<div class='card history-card'>
+			<div class='card-content'>
+				<c:choose>
+					<c:when test="${empty records}"> There is no transaction history for this portfolio.
+	     </c:when>
+					<c:otherwise>
+						<table>
+							<thead>
+								<tr>
+									<th>Type</th>
+									<th>Amount (money)</th>
+									<th class='center'>Stock</th>
+									<th class='center'>Shares</th>
+									<th>Price</th>
+									<th>Balance</th>
+									<th>Time</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<c:forEach items="${records}" var="record">
+										<td>${record.type}</td>
+										<td><fmt:formatNumber value="${record.amount}" type="currency" /></td>
+										<td class='center'><c:out value='${record.symbol}'/></td>
+										<td class='center'>${record.shares eq 0? '' : record.shares }</td>
+										<td><fmt:formatNumber value="${record.price}" type="currency" /></td>
+										<td><fmt:formatNumber value="${record.balance}" type="currency" /></td>
+										<td><c:out value='${record.time }'/></td>
+									</c:forEach>
+								</tr>
+							</tbody>
+							<c:forEach items="${records}" var="record">
 
+							</c:forEach>
+						</table>
+					</c:otherwise>
+				</c:choose>
+			</div>
+		</div>
 	</div>
 
 	<div id="deposit-modal" class="modal">

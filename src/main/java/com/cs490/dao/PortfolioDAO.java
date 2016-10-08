@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -14,6 +15,7 @@ import java.util.List;
 
 import com.cs490.database.MySqlConnector;
 import com.cs490.vo.PortfolioVO;
+import com.cs490.vo.RecordVO;
 
 import yahoofinance.Stock;
 import yahoofinance.YahooFinance;
@@ -269,7 +271,7 @@ public class PortfolioDAO {
 		try {
 			String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 			BigDecimal currentBalance = findPortfolioBalance(id);
-			String query =  "INSERT INTO cash_history (transaction_type, amount, balance, time, portfolio_id) VALUES (?,?,?,?,?)";
+			String query =  "INSERT INTO history (transaction_type, money_amount, balance, time, portfolio_id) VALUES (?,?,?,?,?)";
 			prepStmt = connection.prepareStatement(query);
 			prepStmt.setString(1, "Deposit");
 			prepStmt.setBigDecimal(2, amount);
@@ -286,5 +288,40 @@ public class PortfolioDAO {
 			connection.close();
 		}
 		return result;
+	}
+	
+	public static ArrayList<RecordVO> getPortfolioRecord(int id) throws SQLException {
+		Connection connection = null;
+		ArrayList<RecordVO> records = new  ArrayList<RecordVO>();
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT transaction_type, money_amount, stock_symbol, shares, share_price, balance, time FROM history WHERE portfolio_id=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, id);
+			ResultSet rs = prepStmt.executeQuery();
+			while(rs.next()){
+				RecordVO record = new RecordVO();
+				record.setType(rs.getString(1));
+				record.setAmount(rs.getBigDecimal(2));
+				record.setSymbol(rs.getString(3));
+				record.setShares(rs.getInt(4));
+				record.setPrice(rs.getBigDecimal(5));
+				record.setBalance(rs.getBigDecimal(6));
+				record.setTime(rs.getString(7));
+				records.add(record);
+			}
+			prepStmt.close();
+			return records;
+		} catch(Exception e){
+			e.printStackTrace();
+			return records;
+		} finally {
+			connection.close();
+		}
 	}
 }
