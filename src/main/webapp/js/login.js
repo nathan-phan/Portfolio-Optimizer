@@ -56,7 +56,6 @@ function displayToast(content, duration) {
 	})
 }
 
-
 $('#register-form').submit(
 		function(e) {
 			e.preventDefault();

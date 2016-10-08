@@ -1,8 +1,12 @@
 package com.cs490.servlet;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -22,21 +26,45 @@ import com.google.gson.JsonObject;
 
 import yahoofinance.Stock;
 import yahoofinance.YahooFinance;
+import yahoofinance.histquotes.HistoricalQuote;
 
 @WebServlet(name="MainServlet", displayName="MainServlet", urlPatterns= {
 		"/webapps7/stock", "/webapps7/login", "/webapps7/register", "/webapps7/forgotpass",
 		"/webapps7/authenticate", "/webapps7/index", "/webapps7/portfolio/add",
-		"/webapps7/portfolio/view"
+		"/webapps7/portfolio/view", "/webapps7/logout",
+		"/webapps7/stock/buy", "/webapps7/stock/sell",
+		"/webapps7/withdraw","/webapps7/deposit",
+		"/webapps7/portfolio/delete", "/webapps7/portfolio/history"
 })
 public class MainServlet extends HttpServlet {
 	private static final long serialVersionUID = 389807010932642772L;
-
+	private static final String ALLOWED_STOCKS = "MMM,AXP,AAPL,BA,CAT,CVX,CSCO,KO,DIS,DD,XOM,"
+			+ "GE,GS,HD,IBM,INTC,JNJ,JPM,MCD,MRK,MSFT,NKE,PFE,PG,TRV,UTX,"
+			+ "UNH,VZ,V,WMT,ACC,ADANIPORTS,AMBUJACEM,ASIANPAINT,AXISBANK,"
+			+ "BAJAJ-AUTO,BANKBARODA,BHARTIARTL,BHEL,BOSCHLTD,BPCL,CAIRN,"
+			+ "CIPLA,COALINDIA,DRREDDY,GAIL,GRASIM,HCLTECH,HDFC,HDFCBANK"
+			+ ",HEROMOTOCO,HINDALCO,HINDUNILVR,ICICIBANK,IDEA,INDUSINDBK,"
+			+ "INFY,ITC,KOTAKBANK,LT,LUPIN,M&amp;M,MARUTI,NTPC,ONGC,PNB,"
+			+ "POWERGRID,RELIANCE,SBIN,SUNPHARMA,TATAMOTORS,TATAPOWER,"
+			+ "TATASTEEL,TCS,TECHM,ULTRATECH,VEDL,WIPRO,YESBANK,ZEEL,"
+			+ "SGX: Z74,SGX: S58,SGX: U14,SGX: D05,SGX: O39,SGX: U11,"
+			+ "SGX: F34,SGX: BN4,SGX: H78,SGX: G13,SGX: C07,SGX: C31,SGX: "
+			+ "C6L,SGX: Y92,SGX: MC0,SGX: C09,SGX: S63,SGX: S51,SGX: U96,"
+			+ "SGX: NS8U,SGX: E5H,SGX: C61U,SGX: S68,SGX: C38U,SGX: A17U,"
+			+ "SGX: T39,SGX: CC3,SGX: BS6,SGX: S59,SGX: C52,SGX: EB5,"
+			+ "SGX: S08,SGX: T82U,SGX: K71U,SGX: N03,SSRX,JOBS,ATV,ACTS,"
+			+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
+			+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
+			+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
+			+ "LDK,LTON,LFT,MR,NTES,EDU,NINE,NED,PWRD,PTR,SOL,GAME,SNDA,"
+			+ "SCR,SHI,SOLF,SPRD,STP,NCTY,TCM,TSL,VIT,VIMC,VISN,WH,WX,XSEL,"
+			+ "XIN,YZC,YGE";
 	@Override																	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); 
 		response.setHeader("Pragma", "no-cache");
 		response.setHeader("Expires", "0");
-		if(request.getRequestURI().equals("/webapps7/login")){
+		if(request.getRequestURI().contains("/login")){
 			try {
 				showLoginScreen(request, response);
 			} catch (Exception e) {
@@ -45,6 +73,10 @@ public class MainServlet extends HttpServlet {
 		}
 
 		if(request.getRequestURI().contains("/stock")){
+			if(!checkLoggedIn(request, response)){
+				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+				return;
+			}
 			try {
 				displayStockInfo(request, response);
 				return;
@@ -62,9 +94,22 @@ public class MainServlet extends HttpServlet {
 		}
 
 		if(request.getRequestURI().contains("/portfolio/view")){
+			if(!checkLoggedIn(request, response)){
+				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+				return;
+			}
 			try {
 				displayPortfolio(request, response);
 			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+
+		if(request.getRequestURI().contains("/logout")){
+			try {
+				logOut(request, response);
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			return;
@@ -111,7 +156,14 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-
+		if(request.getRequestURI().contains("/deposit")){
+			try {
+				depositMoney(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}
 	}
 
 	private void displayStockInfo(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
@@ -292,8 +344,72 @@ public class MainServlet extends HttpServlet {
 		if(request.getParameter("id") != null) {
 			portfolioId = Integer.parseInt(request.getParameter("id"));
 		}
+		String overseaStocks = "ACC,ADANIPORTS,AMBUJACEM,ASIANPAINT,AXISBANK,"
+				+ "BAJAJ-AUTO,BANKBARODA,BHARTIARTL,BHEL,BOSCHLTD,BPCL,CAIRN,"
+				+ "CIPLA,COALINDIA,DRREDDY,GAIL,GRASIM,HCLTECH,HDFC,HDFCBANK"
+				+ ",HEROMOTOCO,HINDALCO,HINDUNILVR,ICICIBANK,IDEA,INDUSINDBK,"
+				+ "INFY,ITC,KOTAKBANK,LT,LUPIN,M&M,MARUTI,NTPC,ONGC,PNB,"
+				+ "POWERGRID,RELIANCE,SBIN,SUNPHARMA,TATAMOTORS,TATAPOWER,"
+				+ "TATASTEEL,TCS,TECHM,ULTRATECH,VEDL,WIPRO,YESBANK,ZEEL,"
+				+ "SGX: Z74,SGX: S58,SGX: U14,SGX: D05,SGX: O39,SGX: U11,"
+				+ "SGX: F34,SGX: BN4,SGX: H78,SGX: G13,SGX: C07,SGX: C31,SGX: "
+				+ "C6L,SGX: Y92,SGX: MC0,SGX: C09,SGX: S63,SGX: S51,SGX: U96,"
+				+ "SGX: NS8U,SGX: E5H,SGX: C61U,SGX: S68,SGX: C38U,SGX: A17U,"
+				+ "SGX: T39,SGX: CC3,SGX: BS6,SGX: S59,SGX: C52,SGX: EB5,"
+				+ "SGX: S08,SGX: T82U,SGX: K71U,SGX: N03,SSRX,JOBS,ATV,ACTS,"
+				+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
+				+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
+				+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
+				+ "LDK,LTON,LFT,MR,NTES,EDU,NINE,NED,PWRD,PTR,SOL,GAME,SNDA,"
+				+ "SCR,SHI,SOLF,SPRD,STP,NCTY,TCM,TSL,VIT,VIMC,VISN,WH,WX,XSEL,"
+				+ "XIN,YZC,YGE";
+		request.setAttribute("overseas", overseaStocks);
 		PortfolioVO portfolio = PortfolioDAO.getPortfolioById(portfolioId);
 		request.setAttribute("portfolio", portfolio);
 		request.getRequestDispatcher("/PortfolioView.jsp").forward(request, response);
+	}
+	
+	private void depositMoney(HttpServletRequest request, HttpServletResponse response) throws SQLException, IOException {
+		JsonObject json = new JsonObject();
+		response.setContentType("application/json");
+		BigDecimal amount;
+		int id = -1;
+		if(request.getParameter("amount") == null || request.getParameter("id") == null ) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Invalid parameter provided.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		amount = new BigDecimal(request.getParameter("amount"));
+		id = Integer.parseInt(request.getParameter("id"));
+		if(!PortfolioDAO.addMoneyToPortfolio(id, amount)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to add money to porfolio.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		if(!PortfolioDAO.recordDeposit(id, amount)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to add record to history.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		json.addProperty("status", "success");
+		response.getWriter().write(json.toString());
+		return;
+	}
+
+	private void logOut(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
+		HttpSession session=request.getSession();  
+		session.invalidate();  
+		request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+	}
+
+	private boolean checkLoggedIn(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		if(session.getAttribute("userName") == null) {
+			return false;
+		}
+		return true;
 	}
 }

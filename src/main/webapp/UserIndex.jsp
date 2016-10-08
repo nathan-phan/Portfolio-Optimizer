@@ -41,7 +41,7 @@
 				<ul id="user-dropdown" class="dropdown-content">
 					<li><a href="#!">Edit profile</a></li>
 					<li class="divider"></li>
-					<li><a href="#!">Logout</a></li>
+					<li><a href="/webapps7/logout">Logout</a></li>
 				</ul>
 			</div>
 		</nav>
@@ -60,13 +60,13 @@
 		<c:choose>
 			<c:when test="${empty ports }">
 				<div class='card user-portfolio-card'>
-					<div class='card-content'>User has no portfolio right now.</div>
+					<div class='card-content center'>User has no portfolio right now.</div>
 				</div>
 			</c:when>
 			<c:otherwise>
 				<ul class="collection portfolio-collection z-depth-1">
 					<c:forEach items="${ports}" var='port'>
-						<li class="collection-item portfolio-entry hand">
+						<li class="collection-item portfolio-entry hand" data-id="${port.id}">
 							<div class='row'>
 								<div class='col s9 port-title'>
 									<c:out value="${port.name }" />
@@ -86,13 +86,16 @@
 										</c:when>
 										<c:otherwise>
 											<c:forEach items="${port.stocks}" var="stock">
-												<c:out value='${stock.symbol}' />
+												|&nbsp;<span class='list-stock-symbol'><c:out
+														value='${stock.symbol}' /></span>&nbsp;
 											</c:forEach>
 										</c:otherwise>
 									</c:choose>
 								</div>
 								<div class='col s3 port-balance'>
-									<span class='entry-balance'><fmt:formatNumber value="${port.balance}" type="currency"/></span><span class='balance-label'>Balance: &nbsp;</span> 
+									<span class='entry-balance'><fmt:formatNumber
+											value="${port.balance}" type="currency" /></span><span
+										class='balance-label'>Balance: &nbsp;</span>
 								</div>
 							</div>
 					</c:forEach>
@@ -114,7 +117,7 @@
 			</div>
 			<div class="row ">
 				<div class="col s12">
-					<form id='add-port-form'>
+					<form id='add-port-form' onSubmit="return false;">
 						<div class="row">
 							<div class="input-field col s12">
 								<input type="hidden" value="${sessionScope.userName}"
@@ -130,7 +133,7 @@
 			</div>
 		</div>
 		<div class="modal-footer">
-			<a id='add-submit' class="modal-action btn-flat">Add</a> <a
+			<a id='add-submit' class="modal-action modal-close btn-flat">Add</a> <a
 				class="modal-action modal-close btn-flat">Cancel</a>
 		</div>
 	</div>
@@ -147,6 +150,10 @@
 							$('#add-port-name-input').val().trim());
 					addNewPortfolio();
 				})
+		$('.portfolio-entry').click(function(){
+			var id = $(this).attr('data-id');
+			location.href = '/webapps7/portfolio/view?id=' + id;
+		})		
 	</script>
 </body>
 </html>

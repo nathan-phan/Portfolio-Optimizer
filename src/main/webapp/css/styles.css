@@ -34,6 +34,7 @@ body {
 .tabs-container {
 	width: 30%;
 	margin-left: 50px;
+	display: inline-block;
 }
 
 .tabs-container .tabs, .tabs-container .tab {
@@ -61,11 +62,18 @@ body {
 	background-color: #1976d2 !important;
 }
 
+.empty-portfolio-card {
+	width: 600px;
+	top: 130px;
+	margin: 5px 50px;
+	position: fixed;
+}
+
 .user-portfolio-card {
-	max-width: 1000px;
+	width: 1000px;
 	left: 0;
 	right: 0;
-	margin: 20px;
+	margin: 20px auto;
 }
 
 .lower-nav-bar {
@@ -95,7 +103,6 @@ body {
 	display: inline-block;
 	height: 64px;
 	position: absolute;
-	top: 10px;
 	right: 30px;
 }
 
@@ -153,7 +160,8 @@ body {
 
 .login-app-title-row {
 	height: 50px !important;
-	font-family: 'Fugaz One'; font-size: 1.7em;
+	font-family: 'Fugaz One';
+	font-size: 1.7em;
 	font-weight: 500;
 }
 
@@ -245,7 +253,7 @@ label[data-error]:after {
 	margin-top: 5px;
 }
 
-.stock-label, .balance-label{
+.stock-label, .balance-label {
 	font-weight: 500;
 	color: green;
 }
@@ -257,6 +265,72 @@ label[data-error]:after {
 .port-entry-icons {
 	float: right !important;
 	margin: 0 10px;
+}
+
+.list-stock-symbol {
+	font-weight: 500;
+	font-color: blue;
+}
+
+#add-portfolio-button {
+	top: 10px;
+}
+
+#left-container {
+	position: absolute;
+	left: 0;
+	width: 60%;
+	top: 130px;
+}
+
+.card-header {
+	color: #4caf50;
+	font-weight: 600;
+}
+
+#right-container {
+	position: absolute;
+	right: 0;
+	width: 40%;
+	top: 130px;
+}
+
+.guidelines-card {
+	margin: 15px 20px;
+}
+
+.portfolio-overview-card {
+  margin: 5px 20px;
+}
+
+.portfolio-overview-card ul {
+	margin: 0 !important;
+	color: red;
+}
+
+.allowed-stock-card {
+	margin: 15px 20px;
+}
+
+.guidelines-card li {
+	margin-bottom: 10px;
+}
+
+.allowed-stocks-header {
+	font-weight: 500;
+	font-size: 1.1em;
+}
+
+.allowed-stocks-header-row {
+	 margin: 10px 0;
+}
+
+.allowed-stock-entry {
+	font-size: 0.8em;
+}
+
+.bold {
+	font-weight: 500;
 }
 
 @media only screen and (max-width: 1400px) {

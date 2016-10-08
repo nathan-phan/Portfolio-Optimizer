@@ -21,3 +21,25 @@ function addNewPortfolio(){
 		}
 	})
 }
+
+function depositMoney(amount, id){
+	$.ajax({
+		url:"/webapps7/deposit?" + $.param({
+			"amount": amount,
+			"id": id
+		}),
+		type:"POST",
+		async: false,
+		cache: false,
+		success: function(response){
+			if(response.status == 'failed'){
+				displayToast(
+						response.errorMessage,
+						5000);
+				return;
+			} else {
+				location.reload();
+			}
+		}
+	})
+}
