@@ -85,9 +85,9 @@
 										None
 										</c:when>
 										<c:otherwise>
-											<c:forEach items="${port.stocks}" var="stock">
+											<c:forEach items="${port.stocks}" var="entry">
 												|&nbsp;<span class='list-stock-symbol'><c:out
-														value='${stock.symbol}' /></span>&nbsp;
+														value='${entry.key.symbol}' /></span>&nbsp;
 											</c:forEach>
 										</c:otherwise>
 									</c:choose>

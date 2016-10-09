@@ -10,14 +10,14 @@ public class PortfolioVO {
 	private String name;
 	private BigDecimal balance;
 	private String userName;
-	private LinkedHashMap<Stock, Integer> stocks;
+	private LinkedHashMap<StockVO, Integer> stocks;
 
 	public PortfolioVO() {
 		id = -1;
 		name = "";
 		balance = new BigDecimal(0);
 		userName = "";
-		stocks = new LinkedHashMap<Stock, Integer>();
+		stocks = new LinkedHashMap<StockVO, Integer>();
 	}
 
 	public int getId() {
@@ -52,11 +52,11 @@ public class PortfolioVO {
 		this.userName = userName;
 	}
 
-	public LinkedHashMap<Stock, Integer> getStocks() {
+	public LinkedHashMap<StockVO, Integer> getStocks() {
 		return stocks;
 	}
 
-	public void setStocks(LinkedHashMap<Stock, Integer> stocks) {
+	public void setStocks(LinkedHashMap<StockVO, Integer> stocks) {
 		this.stocks = stocks;
 	}
 

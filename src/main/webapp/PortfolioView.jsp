@@ -85,19 +85,54 @@
 				<c:when test="${empty portfolio.stocks }">
 					<div class='card empty-portfolio-card'>
 						<div class='card-content'>Looks like this portfolio is
-							empty. <a id='add-stock-button' href='#add-stock-modal'
-          class="waves-effect btn red modal-trigger right"> <span>Add stock</span></a></div>
+							empty.</div>
 					</div>
 				</c:when>
 				<c:otherwise>
-					<ul class="collapsible popout" data-collapsible="accordion">
-						<li>
-							<div class="collapsible-header">
-								<i class="material-icons">filter_drama</i>First
-							</div>
-							<div class="collapsible-body"></div>
-						</li>
-						<li>
+					<ul class="collapsible popout stock-collection"
+						data-collapsible="accordion">
+						<c:forEach items="${portfolio.stocks}" var="entry">
+							<li>
+								<div class="collapsible-header valign-wrapper">
+									<span class="title entry-name"><c:out
+											value='${entry.key.name}' /> <span class='entry-symbol'>(<c:out
+												value='${entry.key.symbol}' /></span>)</span> - 
+									<fmt:formatNumber value="${entry.key.price}"
+										type="currency" />
+									<div class="secondary-content">${entry.value}</div>
+								</div>
+								<div class="collapsible-body">
+									<div class='row'>
+										<div class='col s6 stock-info-header'>Current price</div>
+										<div class='stock-price col s6'>
+											<fmt:formatNumber value="${entry.key.price }"
+												type="currency" />
+												<a href='#sell-stock-modal'
+                        class="waves-effect btn blue modal-trigger right"> <span>Sell
+                          stock</span></a>
+										</div>
+									</div>
+									<div class='row prev-closing-row'>
+										<div class='col s6 stock-info-header'>Previous closing
+											price</div>
+										<div class='stock-closing-price col s6'>
+											<fmt:formatNumber value="${entry.key.previousClosingPrice}"
+												type="currency" />
+										</div>
+									</div>
+									<div class='row'>
+										<div class='col s6 stock-info-header'>Price change</div>
+										<div
+											class='stock-price-change col s6 ${entry.key.change lt 0? 'red-text':'green-text' }'>${entry.key.change}</div>
+									</div>
+									<div class='row'>
+										<div class='col s6 stock-info-header'>Percent change</div>
+										<div
+											class='stock-change-percent col s6 ${entry.key.change lt 0? 'red-text':'green-text' }'>${entry.key.changePercent}%</div>
+									</div>
+								</div>
+							</li>
+						</c:forEach>
 					</ul>
 
 				</c:otherwise>
@@ -110,9 +145,14 @@
 						<div class="col s12">
 							<h5 class='card-header'>Portfolio Overview</h5>
 						</div>
-						<div class="col s12">
+						<div class="col s6">
 							<span class='bold'>Balance </span>: &nbsp;
 							<fmt:formatNumber value="${portfolio.balance}" type="currency" />
+						</div>
+						<div class="col s6">
+							<a id='add-stock-button' href='#add-stock-modal'
+								class="waves-effect btn red modal-trigger right"> <span>Add
+									stock</span></a>
 						</div>
 						<div class="col s12 display-none">
 							<span class='bold'>Violation</span>:
@@ -170,7 +210,7 @@
 						<div class="col s12">
 							<c:set var="overseas" value="${overseas}" />
 							<c:forTokens var="stock" items="${overseas}" delims=",">
-								<div class='col s2 allowed-stock-entry'>
+								<div class='col s3 allowed-stock-entry'>
 									<c:out value='${stock}' />
 								</div>
 							</c:forTokens>
@@ -280,8 +320,44 @@
 			</div>
 		</div>
 		<div class="modal-footer">
-			<a id='withdraw-submit' class="modal-action btn-flat">Withdraw</a>
-			<a class="modal-action modal-close btn-flat">Cancel</a>
+			<a id='withdraw-submit' class="modal-action btn-flat">Withdraw</a> <a
+				class="modal-action modal-close btn-flat">Cancel</a>
+		</div>
+	</div>
+
+	<div id="add-stock-modal" class="modal">
+		<div class="modal-content">
+			<div class="row">
+				<div class="col s12">
+					<h5>Add Stocks</h5>
+				</div>
+			</div>
+			<div class="row ">
+				<div class="col s12">
+					<form id='add-stock-form' onSubmit="return false;">
+						<div class="row">
+							<div class="col s12">Please enter the stock symbol and
+								shares you wish to purchase</div>
+							<br> <br>
+							<div class="input-field col s6">
+								<input id="buy-symbol-input" name="symbol" type="text"
+									class="required-input" placeholder="Enter a symbol"> <label
+									id='buy-symbol-label' for="buy-symbol-input" data-error="">Symbol</label>
+							</div>
+							<div class="input-field col s6">
+								<input id="buy-share-input" name="shares" type="text"
+									class="required-input" placeholder="Enter a number"> <label
+									id='buy-share-label' for="buy-share-input" data-error="">Shares</label>
+							</div>
+						</div>
+						<input type='hidden' name='id' value='${param.id }'>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<a id='add-stock-submit' class="modal-action btn-flat">Add</a> <a
+				class="modal-action modal-close btn-flat">Cancel</a>
 		</div>
 	</div>
 
@@ -333,7 +409,43 @@
 						withdrawMoney(amount, id);
 						$('#withdraw-modal').closeModal();
 					});
-		})
+
+			$('#add-stock-submit').click(
+					function() {
+						$('#buy-share-input').val(
+								$('#buy-share-input').val().trim());
+						var number = $('#buy-share-input').val();
+						if (isNaN(number) || parseInt(Number(number)) != number
+								|| parseInt(Number(number)) < 0
+								|| parseInt(Number(number)) > 2000000
+								|| isNaN(parseInt(number, 10))) {
+							$('#buy-share-input').addClass('invalid');
+							$('#buy-share-label').attr('data-error',
+									"Invalid shares value");
+							return;
+						} else {
+							$.ajax({
+								url : "/webapps7/stock/buy",
+								data : $('#add-stock-form').serialize(),
+								async : false,
+								cache : false,
+								type : "POST",
+								success : function(response) {
+									if (response.status == 'failed') {
+										$('#buy-symbol-input').addClass(
+												'invalid');
+										$('#buy-symbol-label').attr(
+												'data-error',
+												response.errorMessage);
+										return;
+									} else {
+										location.reload();
+									}
+								}
+							});
+						}
+					});
+		});
 	</script>
 </body>
 </html>

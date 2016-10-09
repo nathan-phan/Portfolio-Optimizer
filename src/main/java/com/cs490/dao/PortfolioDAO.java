@@ -1,21 +1,36 @@
 package com.cs490.dao;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.apache.commons.io.IOUtils;
+
 import com.cs490.database.MySqlConnector;
+import com.cs490.servlet.MainServlet;
+import com.cs490.vo.GoogleStock;
 import com.cs490.vo.PortfolioVO;
 import com.cs490.vo.RecordVO;
+import com.cs490.vo.StockVO;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.google.gson.JsonParser;
 
 import yahoofinance.Stock;
 import yahoofinance.YahooFinance;
@@ -76,9 +91,9 @@ public class PortfolioDAO {
 		}
 	}
 
-	public static LinkedHashMap<Stock, Integer> findStocksByPortfolioId(int portId) throws SQLException {
+	public static LinkedHashMap<StockVO, Integer> findStocksByPortfolioId(int portId) throws SQLException {
 		Connection connection = null;
-		LinkedHashMap<Stock, Integer> stocks = new LinkedHashMap<Stock, Integer>();
+		LinkedHashMap<StockVO, Integer> stocks = new LinkedHashMap<StockVO, Integer>();
 		try {
 			connection = new MySqlConnector().getConnection();
 		} catch (Exception e) {
@@ -91,7 +106,7 @@ public class PortfolioDAO {
 			prepStmt.setInt(1, portId);
 			ResultSet rs = prepStmt.executeQuery();
 			while(rs.next()){
-				Stock stock = new Stock(rs.getString(1));
+				StockVO stock = new StockVO(rs.getString(1));
 				stocks.put(stock, rs.getInt(2));
 			}
 			prepStmt.close();
@@ -122,11 +137,7 @@ public class PortfolioDAO {
 				port.setName(rs.getString(1));
 				port.setBalance(rs.getBigDecimal(2));
 				port.setId(portfolioId);
-				LinkedHashMap<Stock, Integer> stocks = findStocksByPortfolioId(portfolioId);
-				port.setStocks(stocks);
-				for(Stock stock:stocks.keySet()){
-					stock = YahooFinance.get(stock.getSymbol());
-				}
+				LinkedHashMap<StockVO, Integer> stocks = findStocksByPortfolioId(portfolioId);
 				port.setStocks(stocks);
 			}
 			prepStmt.close();
@@ -139,7 +150,7 @@ public class PortfolioDAO {
 		}
 	}
 
-	public static boolean insertStockToPortfolio(int id, String symbol, int shares) throws SQLException {
+	public static boolean insertStockToPortfolio(int id, String symbol, int shares, boolean firstTime) throws SQLException {
 		boolean result = false;
 		Connection connection = null;
 		try {
@@ -150,13 +161,24 @@ public class PortfolioDAO {
 		}
 		PreparedStatement prepStmt = null;
 		try {
-			String query =  "INSERT INTO portfolio_stocks(portfolio_id, stock_symbol, shares) VALUES(?,?,?)";
-			prepStmt = connection.prepareStatement(query);
-			prepStmt.setInt(1, id);
-			prepStmt.setString(2, symbol);
-			prepStmt.setInt(3, shares);
-			prepStmt.executeUpdate();
-			prepStmt.close();
+			if(firstTime){
+				String query =  "INSERT INTO portfolio_stocks(portfolio_id, stock_symbol, shares) VALUES(?,?,?)";
+				prepStmt = connection.prepareStatement(query);
+				prepStmt.setInt(1, id);
+				prepStmt.setString(2, symbol);
+				prepStmt.setInt(3, shares);
+				prepStmt.executeUpdate();
+				prepStmt.close();
+			} else {
+				String query =  "UPDATE portfolio_stocks SET shares = (shares + ?) WHERE portfolio_id = ? AND stock_symbol = ?";
+				prepStmt = connection.prepareStatement(query);
+				prepStmt.setInt(1, shares);
+				prepStmt.setInt(2, id);
+				prepStmt.setString(3, symbol);
+				prepStmt.executeUpdate();
+				prepStmt.close();
+			}
+			
 			result = true;
 		} catch(Exception e){
 			e.printStackTrace();
@@ -249,14 +271,53 @@ public class PortfolioDAO {
 		}
 	}
 
-	public static BigDecimal findInitialStockPrice(String symbol) {
-		Calendar calendar = new GregorianCalendar();
-		calendar.set(Calendar.YEAR, 2016);
-		calendar.set(Calendar.MONTH, Calendar.SEPTEMBER);
-		calendar.set(Calendar.DAY_OF_MONTH, 12);
-		Stock stock = YahooFinance.get(symbol);
-		List<HistoricalQuote> history = stock.getHistory(calendar,calendar);
-		return history.get(0).getClose();
+	public static BigDecimal findInitialStockPrice(String symbol) throws SQLException {
+		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
+		if(Arrays.asList(niftyArray).contains(symbol)){
+			Connection connection = null;
+			try {
+				connection = new MySqlConnector().getConnection();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			PreparedStatement prepStmt = null;
+			BigDecimal result = new BigDecimal(-1);
+			try {
+				String query = "SELECT price FROM nifty_initial WHERE symbol=?";
+				prepStmt = connection.prepareStatement(query);
+				prepStmt.setString(1, symbol);
+				ResultSet rs = prepStmt.executeQuery();
+				if(rs.next()){
+					result = rs.getBigDecimal(1);
+				}
+				prepStmt.close();
+				return result;
+			} catch(Exception e){
+				e.printStackTrace();
+				return result;
+			} finally {
+				connection.close();
+			}
+		} else {
+			Calendar calendar = new GregorianCalendar();
+			calendar.set(Calendar.YEAR, 2016);
+			calendar.set(Calendar.MONTH, Calendar.SEPTEMBER);
+			calendar.set(Calendar.DAY_OF_MONTH, 12);
+			Stock stock = YahooFinance.get(symbol);
+			List<HistoricalQuote> history = stock.getHistory(calendar,calendar);
+			return history.get(0).getClose();
+		}
+	}
+	
+	public static BigDecimal findCurrentStockPrice(String symbol) throws SQLException, JsonParseException, JsonMappingException, IOException {
+		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
+		if(Arrays.asList(niftyArray).contains(symbol)){
+			GoogleStock stock = new GoogleStock(symbol);
+			return stock.getPrice();
+		} else {
+			Stock stock = YahooFinance.get(symbol);
+			return stock.getQuote().getPrice();
+		}
 	}
 
 	public static boolean recordDeposit(int id, BigDecimal amount) throws SQLException{
@@ -290,7 +351,7 @@ public class PortfolioDAO {
 		}
 		return result;
 	}
-	
+
 	public static boolean recordWithdraw(int id, BigDecimal amount) throws SQLException{
 		boolean result = false;
 		Connection connection = null;
@@ -322,7 +383,7 @@ public class PortfolioDAO {
 		}
 		return result;
 	}
-	
+
 	public static ArrayList<RecordVO> getPortfolioRecord(int id) throws SQLException {
 		Connection connection = null;
 		ArrayList<RecordVO> records = new  ArrayList<RecordVO>();
@@ -357,7 +418,7 @@ public class PortfolioDAO {
 			connection.close();
 		}
 	}
-	
+
 	public static boolean deletePortfolio(int id) throws SQLException {
 		Connection connection = null;
 		try {
@@ -377,6 +438,172 @@ public class PortfolioDAO {
 		} catch(Exception e){
 			e.printStackTrace();
 			return false;
+		} finally {
+			connection.close();
+		}
+	}
+
+	public static boolean recordStockPurchase(String symbol, int shares, BigDecimal price, int id) throws SQLException{
+		boolean result = false;
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+			BigDecimal currentBalance = findPortfolioBalance(id);
+			String query =  "INSERT INTO history (transaction_type, stock_symbol, shares, share_price, balance, time, portfolio_id) VALUES (?,?,?,?,?,?,?)";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setString(1, "Buy");
+			prepStmt.setString(2, symbol);
+			prepStmt.setInt(3, shares);
+			prepStmt.setBigDecimal(4, price);
+			prepStmt.setBigDecimal(5, currentBalance);
+			prepStmt.setString(6, timeStamp);
+			prepStmt.setInt(7, id);
+			prepStmt.executeUpdate();
+			prepStmt.close();
+			result = true;
+		} catch(Exception e) {
+			e.printStackTrace();
+			return result;
+		} finally {
+			connection.close();
+		}
+		return result;
+	}
+
+	public static void insertNifty() throws SQLException{
+		HashMap<String, Double> x = new HashMap<String, Double>(); 
+		x.put("NSE:ACC",	1584.0);
+		x.put("NSE:ADANIPORTS",	259.75);
+		x.put("NSE:AMBUJACEM",	260.0);
+		x.put("NSE:ASIANPAINT",	1155.0);
+		x.put("NSE:AXISBANK",	594.5);
+		x.put("NSE:BAJAJ-AUTO",	2953.0);
+		x.put("NSE:BANKBARODA",	162.1);
+		x.put("NSE:BHARTIARTL",	317.8);
+		x.put("NSE:BHEL",	147.6);
+		x.put("NSE:BOSCHLTD",	23400.1);
+		x.put("NSE:BPCL",	566.0);
+		x.put("NSE:CAIRN",	191.25);
+		x.put("NSE:CIPLA",	570.5);
+		x.put("NSE:COALINDIA",	330.3);
+		x.put("NSE:DRREDDY",	3140.0);
+		x.put("NSE:GAIL",	386.25);
+		x.put("NSE:GRASIM",	4642.0);
+		x.put("NSE:HCLTECH",	780.2);
+		x.put("NSE:HDFC",	1398.0);
+		x.put("NSE:HDFCBANK",	1279.6);
+		x.put("NSE:HEROMOTOCO",	3537.0);
+		x.put("NSE:HINDALCO",	141.2);
+		x.put("NSE:HINDUNILVR",	919.0);
+		x.put("NSE:ICICIBANK",	267.85);
+		x.put("NSE:IDEA",	82.7);
+		x.put("NSE:INDUSINDBK",	1195.35);
+		x.put("NSE:INFY",	1055.0);
+		x.put("NSE:ITC",	251.85);
+		x.put("NSE:KOTAKBANK",	814.0);
+		x.put("NSE:LT",	1463.0);
+		x.put("NSE:LUPIN",	1533.2);
+		x.put("NSE:M&M",	1424.9);
+		x.put("NSE:MARUTI",	5330.0);
+		x.put("NSE:NTPC",	153.0);
+		x.put("NSE:ONGC",	250.8);
+		x.put("NSE:PNB"	,137.0);
+		x.put("NSE:POWERGRID",	180.05);
+		x.put("NSE:RELIANCE",	1046.95);
+		x.put("NSE:SBIN",	253.65);
+		x.put("NSE:SUNPHARMA",	786.0);
+		x.put("NSE:TATAMOTORS",	553.75);
+		x.put("NSE:TATAPOWER",	74.15);
+		x.put("NSE:TATASTEEL",	371.95);
+		x.put("NSE:TCS",	2358.0);
+		x.put("NSE:TECHM"	,464.1);
+		x.put("NSE:ULTRACEMCO", 	3869.05);
+		x.put("NSE:VEDL",	163.0);
+		x.put("NSE:WIPRO",	482.0);
+		x.put("NSE:YESBANK",	1199.5);
+		x.put("NSE:ZEEL",	517.35);
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query =  "INSERT INTO nifty_initial (symbol, price) VALUES (?,?)";
+			prepStmt = connection.prepareStatement(query);
+			for(String a:x.keySet()){
+				BigDecimal b = new BigDecimal(x.get(a));
+				prepStmt.setString(1, a);
+				prepStmt.setBigDecimal(2, b);
+				prepStmt.executeUpdate();
+			}
+			prepStmt.close();
+		} catch(Exception e) {
+			e.printStackTrace();
+		} finally {
+			connection.close();
+		}
+	}
+	
+	public static BigDecimal initialCurrencyConvert (String symbol, BigDecimal price) {
+		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
+		String[] straitArray = MainServlet.STRAIT_STOCKS.split(",");
+		if(Arrays.asList(niftyArray).contains(symbol)){
+			return price.divide(new BigDecimal(MainServlet.INITIAL_USD_INR),4, RoundingMode.HALF_UP);
+		}
+		if(Arrays.asList(straitArray).contains(symbol)){
+			return price.divide(new BigDecimal(MainServlet.INITIAL_USD_SGD),4, RoundingMode.HALF_UP);
+		}
+		return price;
+	}
+	
+	public static BigDecimal liveCurrencyConvert(String symbol, BigDecimal price) throws MalformedURLException, IOException {
+		String jsonContent = IOUtils.toString(new URL("http://www.apilayer.net/api/live?access_key=da54f57878f7a80edcfce214d7889683&format=1"), Charset.forName("UTF-8"));
+		JsonParser jsonParser = new JsonParser();
+		String irnRate = jsonParser.parse(jsonContent).getAsJsonObject().get("quotes").getAsJsonObject().get("USDINR").getAsString();
+		String sgdRate = jsonParser.parse(jsonContent).getAsJsonObject().get("quotes").getAsJsonObject().get("USDSGD").getAsString();
+		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
+		String[] straitArray = MainServlet.STRAIT_STOCKS.split(",");
+		if(Arrays.asList(niftyArray).contains(symbol)){
+			return price.divide(new BigDecimal(irnRate), 4, RoundingMode.HALF_UP);
+		}
+		if(Arrays.asList(straitArray).contains(symbol)){
+			return price.divide(new BigDecimal(sgdRate),4, RoundingMode.HALF_UP);
+		}
+		return price;
+	}
+	
+	public static boolean checkForInitialPurchase(int id, String symbol) throws SQLException{
+		Connection connection = null;
+		boolean result = true;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT 1 FROM portfolio_stocks WHERE portfolio_id=? AND stock_symbol=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, id);
+			prepStmt.setString(2, symbol);
+			ResultSet rs = prepStmt.executeQuery();
+			if(rs.next()){
+				result = false;
+			}
+			prepStmt.close();
+			return result;
+		} catch(Exception e){
+			e.printStackTrace();
+			return result;
 		} finally {
 			connection.close();
 		}

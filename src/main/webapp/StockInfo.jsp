@@ -12,8 +12,7 @@
 </div>
 <div class='row'>
 	<div class='col s6 stock-info-header'>Current price</div>
-	<div class='stock-price col s6'><fmt:formatNumber value="${stock.quote.price }" 
-            type="currency"/></div>
+	<div class='stock-price col s6'>${stock.quote.price }</div>
 </div>
 <div class='row'>
 	<div class='col s6 stock-info-header'>Previous closing price</div>

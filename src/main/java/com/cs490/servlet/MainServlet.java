@@ -2,12 +2,12 @@ package com.cs490.servlet;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -18,19 +18,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.io.IOUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 import com.cs490.dao.PortfolioDAO;
 import com.cs490.dao.UserDAO;
 import com.cs490.vo.PortfolioVO;
 import com.cs490.vo.RecordVO;
-import com.google.gdata.client.spreadsheet.SpreadsheetService;
+import com.cs490.vo.StockVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import yahoofinance.Stock;
 import yahoofinance.YahooFinance;
-import yahoofinance.histquotes.HistoricalQuote;
 
 @WebServlet(name="MainServlet", displayName="MainServlet", urlPatterns= {
 		"/webapps7/stock", "/webapps7/login", "/webapps7/register", "/webapps7/forgotpass",
@@ -41,28 +41,81 @@ import yahoofinance.histquotes.HistoricalQuote;
 		"/webapps7/portfolio/delete", "/webapps7/portfolio/history","webapps7/sheet/test"
 })
 public class MainServlet extends HttpServlet {
-	private static final long serialVersionUID = 389807010932642772L;
-	private static final String ALLOWED_STOCKS = "MMM,AXP,AAPL,BA,CAT,CVX,CSCO,KO,DIS,DD,XOM,"
+	public static final long serialVersionUID = 389807010932642772L;
+	public static final String ALLOWED_STOCKS = "MMM,AXP,AAPL,BA,CAT,CVX,CSCO,KO,DIS,DD,XOM,"
 			+ "GE,GS,HD,IBM,INTC,JNJ,JPM,MCD,MRK,MSFT,NKE,PFE,PG,TRV,UTX,"
-			+ "UNH,VZ,V,WMT,ACC,ADANIPORTS,AMBUJACEM,ASIANPAINT,AXISBANK,"
-			+ "BAJAJ-AUTO,BANKBARODA,BHARTIARTL,BHEL,BOSCHLTD,BPCL,CAIRN,"
-			+ "CIPLA,COALINDIA,DRREDDY,GAIL,GRASIM,HCLTECH,HDFC,HDFCBANK"
-			+ ",HEROMOTOCO,HINDALCO,HINDUNILVR,ICICIBANK,IDEA,INDUSINDBK,"
-			+ "INFY,ITC,KOTAKBANK,LT,LUPIN,M&amp;M,MARUTI,NTPC,ONGC,PNB,"
-			+ "POWERGRID,RELIANCE,SBIN,SUNPHARMA,TATAMOTORS,TATAPOWER,"
-			+ "TATASTEEL,TCS,TECHM,ULTRATECH,VEDL,WIPRO,YESBANK,ZEEL,"
-			+ "Z74,S58,U14,D05,O39,U11,"
-			+ "F34,BN4,H78,G13,C07,C31,"
-			+ "C6L,Y92,MC0,C09,S63,S51,U96,"
-			+ "NS8U,E5H,C61U,S68,C38U,A17U,"
-			+ "T39,CC3,BS6,S59,C52,EB5,"
-			+ "S08,T82U,K71U,N03,SSRX,JOBS,ATV,ACTS,"
+			+ "UNH,VZ,V,WMT,NSE:ACC,NSE:ADANIPORTS,NSE:AMBUJACEM,NSE:ASIANPAINT,NSE:AXISBANK,"
+			+ "NSE:BAJAJ-AUTO,NSE:BANKBARODA,NSE:BHARTIARTL,NSE:BHEL,NSE:BOSCHLTD,NSE:BPCL,NSE:CAIRN,"
+			+ "NSE:CIPLA,NSE:COALINDIA,NSE:DRREDDY,NSE:GAIL,NSE:GRASIM,NSE:HCLTECH,NSE:HDFC,NSE:HDFCBANK"
+			+ ",NSE:HEROMOTOCO,NSE:HINDALCO,NSE:HINDUNILVR,NSE:ICICIBANK,NSE:NSE:IDEA,NSE:INDUSINDBK,"
+			+ "NSE:INFY,NSE:ITC,NSE:KOTAKBANK,NSE:LT,NSE:LUPIN,NSE:M&M,NSE:MARUTI,NSE:NTPC,NSE:ONGC,NSE:PNB,"
+			+ "NSE:POWERGRID,NSE:RELIANCE,NSE:SBIN,NSE:SUNPHARMA,NSE:TATAMOTORS,NSE:TATAPOWER,"
+			+ "NSE:TATASTEEL,NSE:TCS,NSE:TECHM,NSE:ULTRACEMCO,NSE:VEDL,NSE:WIPRO,NSE:YESBANK,NSE:ZEEL,"
+			+ "Z74.si,S58.si,U14.si,D05.si,O39.si,U11.si,"
+			+ "F34.si,BN4.si,H78.si,G13.si,C07.si,C31.si,"
+			+ "C6L.si,Y92.si,MC0.si,C09.si,S63.si,S51.si,U96.si,"
+			+ "NS8U.si,E5H.si,C61U.si,S68.si,C38U.si,A17U.si,"
+			+ "T39.si,CC3.si,BS6.si,S59.si,C52.si,EB5.si,"
+			+ "S08.si,T82U.si,K71U.si,N03.si,JOBS,ATV,ACTS,"
 			+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
 			+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
 			+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
 			+ "LDK,LTON,LFT,MR,NTES,EDU,NINE,NED,PWRD,PTR,SOL,GAME,SNDA,"
 			+ "SCR,SHI,SOLF,SPRD,STP,NCTY,TCM,TSL,VIT,VIMC,VISN,WH,WX,XSEL,"
 			+ "XIN,YZC,YGE";
+
+	public static final String DOMESTIC_STOCKS = "MMM,AXP,AAPL,BA,CAT,CVX,CSCO,KO,DIS,DD,XOM,"
+			+ "GE,GS,HD,IBM,INTC,JNJ,JPM,MCD,MRK,MSFT,NKE,PFE,PG,TRV,UTX,"
+			+ "UNH,VZ,V,WMT";
+
+	public static final String NIFTY_STOCKS = "NSE:ACC,NSE:ADANIPORTS,NSE:AMBUJACEM,"
+			+ "NSE:ASIANPAINT,NSE:AXISBANK,"
+			+ "NSE:BAJAJ-AUTO,NSE:BANKBARODA,NSE:BHARTIARTL,NSE:BHEL,NSE:BOSCHLTD,NSE:BPCL,CAIRN,"
+			+ "NSE:CIPLA,NSE:COALINDIA,NSE:DRREDDY,NSE:GAIL,NSE:GRASIM,NSE:HCLTECH,NSE:HDFC,NSE:HDFCBANK"
+			+ ",NSE:HEROMOTOCO,NSE:HINDALCO,NSE:HINDUNILVR,NSE:ICICIBANK,NSE:IDEA,NSE:INDUSINDBK,"
+			+ "NSE:INFY,NSE:ITC,NSE:KOTAKBANK,NSE:LT,NSE:LUPIN,NSE:M&M,NSE:MARUTI,NSE:NTPC,NSE:ONGC,NSE:PNB,"
+			+ "NSE:POWERGRID,NSE:RELIANCE,NSE:SBIN,NSE:SUNPHARMA,NSE:TATAMOTORS,NSE:TATAPOWER,"
+			+ "NSE:TATASTEEL,NSE:TCS,NSE:TECHM,NSE:ULTRACEMCO,NSE:VEDL,NSE:WIPRO,NSE:YESBANK,NSE:ZEEL";
+
+	public static final String STRAIT_STOCKS = "Z74.si,S58.si,U14.si,D05.si,O39.si,U11.si,"
+			+ "F34.si,BN4.si,H78.si,G13.si,C07.si,C31.si,"
+			+ "C6L.si,Y92.si,MC0.si,C09.si,S63.si,S51.si,U96.si,"
+			+ "NS8U.si,E5H.si,C61U.si,S68.si,C38U.si,A17U.si,"
+			+ "T39.si,CC3.si,BS6.si,S59.si,C52.si,EB5.si,"
+			+ "S08.si,T82U.si,K71U.si,N03.si";
+
+	public static final String ADR_STOCKS = "JOBS,ATV,ACTS,"
+			+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
+			+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
+			+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
+			+ "LDK,LTON,LFT,MR,NTES,EDU,NINE,NED,PWRD,PTR,SOL,GAME,SNDA,"
+			+ "SCR,SHI,SOLF,SPRD,STP,NCTY,TCM,TSL,VIT,VIMC,VISN,WH,WX,XSEL,"
+			+ "XIN,YZC,YGE";
+	
+	public static final String OVERSEA_STOCKS = "NSE:ACC,NSE:ADANIPORTS,NSE:AMBUJACEM,NSE:ASIANPAINT,NSE:AXISBANK,"
+			+ "NSE:BAJAJ-AUTO,NSE:BANKBARODA,NSE:BHARTIARTL,NSE:BHEL,NSE:BOSCHLTD,NSE:BPCL,NSE:CAIRN,"
+			+ "NSE:CIPLA,NSE:COALINDIA,NSE:DRREDDY,NSE:GAIL,NSE:GRASIM,NSE:HCLTECH,NSE:HDFC,NSE:HDFCBANK"
+			+ ",NSE:HEROMOTOCO,NSE:HINDALCO,NSE:HINDUNILVR,NSE:ICICIBANK,NSE:IDEA,NSE:INDUSINDBK,"
+			+ "NSE:INFY,NSE:ITC,NSE:KOTAKBANK,NSE:LT,NSE:LUPIN,NSE:M&M,NSE:MARUTI,NSE:NTPC,NSE:ONGC,NSE:PNB,"
+			+ "NSE:POWERGRID,NSE:RELIANCE,NSE:SBIN,NSE:SUNPHARMA,NSE:TATAMOTORS,NSE:TATAPOWER,"
+			+ "NSE:TATASTEEL,NSE:TCS,NSE:TECHM,NSE:ULTRACEMCO,NSE:VEDL,NSE:WIPRO,NSE:YESBANK,NSE:ZEEL,"
+			+ "Z74.si,S58.si,U14.si,D05.si,O39.si,U11.si,"
+			+ "F34.si,BN4.si,H78.si,G13.si,C07.si,C31.si,"
+			+ "C6L.si,Y92.si,MC0.si,C09.si,S63.si,S51.si,U96.si,"
+			+ "NS8U.si,E5H.si,C61U.si,S68.si,C38U.si,A17U.si,"
+			+ "T39.si,CC3.si,BS6.si,S59.si,C52.si,EB5.si,"
+			+ "S08.si,T82U.si,K71U.si,N03.si,JOBS,ATV,ACTS,"
+			+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
+			+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
+			+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
+			+ "LDK,LTON,LFT,MR,NTES,EDU,NINE,NED,PWRD,PTR,SOL,GAME,SNDA,"
+			+ "SCR,SHI,SOLF,SPRD,STP,NCTY,TCM,TSL,VIT,VIMC,VISN,WH,WX,XSEL,"
+			+ "XIN,YZC,YGE";
+	
+	public static final double INITIAL_USD_INR = 66.722975;
+	
+	public static final double INITIAL_USD_SGD = 1.35552;
+	
 	@Override																	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); 
@@ -208,6 +261,15 @@ public class MainServlet extends HttpServlet {
 		if(request.getRequestURI().contains("/portfolio/delete")){
 			try {
 				deletePortfolio(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+
+		if(request.getRequestURI().contains("/stock/buy")){
+			try {
+				buyStock(request, response);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -393,56 +455,14 @@ public class MainServlet extends HttpServlet {
 		if(request.getParameter("id") != null) {
 			portfolioId = Integer.parseInt(request.getParameter("id"));
 		}
-		String domesticStocks = "MMM,AXP,AAPL,BA,CAT,CVX,CSCO,KO,DIS,DD,XOM,"
-				+ "GE,GS,HD,IBM,INTC,JNJ,JPM,MCD,MRK,MSFT,NKE,PFE,PG,TRV,UTX,"
-				+ "UNH,VZ,V,WMT";
-		String straitStocks = "Z74.si,S58.si,U14.si,D05.si,O39.si,U11.si,"
-				+ "F34.si,BN4.si,H78.si,G13.si,C07.si,C31.si,"
-				+ "C6L.si,Y92.si,MC0.si,C09.si,S63.si,S51.si,U96.si,"
-				+ "NS8U.si,E5H.si,C61U.si,S68.si,C38U.si,A17U.si,"
-				+ "T39.si,CC3.si,BS6.si,S59.si,C52.si,EB5.si,"
-				+ "S08.si,T82U.si,K71U.si,N03.si";
-		String [] straitArray = straitStocks.split(",");
-		String niftyStocks = "ACC,ADANIPORTS,AMBUJACEM,ASIANPAINT,AXISBANK,"
-				+ "BAJAJ-AUTO,BANKBARODA,BHARTIARTL,BHEL,BOSCHLTD,BPCL,CAIRN,"
-				+ "CIPLA,COALINDIA,DRREDDY,GAIL,GRASIM,HCLTECH,HDFC,HDFCBANK"
-				+ ",HEROMOTOCO,HINDALCO,HINDUNILVR,ICICIBANK,IDEA,INDUSINDBK,"
-				+ "INFY,ITC,KOTAKBANK,LT,LUPIN,M&M,MARUTI,NTPC,ONGC,PNB,"
-				+ "POWERGRID,RELIANCE,SBIN,SUNPHARMA,TATAMOTORS,TATAPOWER,"
-				+ "TATASTEEL,TCS,TECHM,ULTRATECH,VEDL,WIPRO,YESBANK,ZEEL";
-		String adrStocks = "SSRX,JOBS,ATV,ACTS,"
-				+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
-				+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
-				+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
-				+ "LDK,LTON,LFT,MR,NTES,EDU,NINE,NED,PWRD,PTR,SOL,GAME,SNDA,"
-				+ "SCR,SHI,SOLF,SPRD,STP,NCTY,TCM,TSL,VIT,VIMC,VISN,WH,WX,XSEL,"
-				+ "XIN,YZC,YGE";
-		String[] adrArray = adrStocks.split(",");
-		String[] niftyArray = niftyStocks.split(",");
-		String[] domesticArray = domesticStocks.split(",");
-		String overseaStocks = "ACC,ADANIPORTS,AMBUJACEM,ASIANPAINT,AXISBANK,"
-				+ "BAJAJ-AUTO,BANKBARODA,BHARTIARTL,BHEL,BOSCHLTD,BPCL,CAIRN,"
-				+ "CIPLA,COALINDIA,DRREDDY,GAIL,GRASIM,HCLTECH,HDFC,HDFCBANK"
-				+ ",HEROMOTOCO,HINDALCO,HINDUNILVR,ICICIBANK,IDEA,INDUSINDBK,"
-				+ "INFY,ITC,KOTAKBANK,LT,LUPIN,M&M,MARUTI,NTPC,ONGC,PNB,"
-				+ "POWERGRID,RELIANCE,SBIN,SUNPHARMA,TATAMOTORS,TATAPOWER,"
-				+ "TATASTEEL,TCS,TECHM,ULTRATECH,VEDL,WIPRO,YESBANK,ZEEL,"
-				+ "Z74.si,S58.si,U14.si,D05.si,O39.si,U11.si,"
-				+ "F34.si,BN4.si,H78.si,G13.si,C07.si,C31.si,"
-				+ "C6L.si,Y92.si,MC0.si,C09.si,S63.si,S51.si,U96.si,"
-				+ "NS8U.si,E5H.si,C61U.si,S68.si,C38U.si,A17U.si,"
-				+ "T39.si,CC3.si,BS6.si,S59.si,C52.si,EB5.si,"
-				+ "S08.si,T82U.si,K71U.si,N03.si,SSRX,JOBS,ATV,ACTS,"
-				+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
-				+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
-				+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
-				+ "LDK,LTON,LFT,MR,NTES,EDU,NINE,NED,PWRD,PTR,SOL,GAME,SNDA,"
-				+ "SCR,SHI,SOLF,SPRD,STP,NCTY,TCM,TSL,VIT,VIMC,VISN,WH,WX,XSEL,"
-				+ "XIN,YZC,YGE";
-		String[] overseaArray = overseaStocks.split(",");
-		request.setAttribute("overseas", overseaStocks);
+		String[] straitArray = STRAIT_STOCKS.split(",");
+		String[] adrArray = ADR_STOCKS.split(",");
+		String[] niftyArray = NIFTY_STOCKS.split(",");
+		String[] domesticArray = DOMESTIC_STOCKS.split(",");
+		String[] overseaArray = OVERSEA_STOCKS.split(",");
+		request.setAttribute("overseas", OVERSEA_STOCKS);
 		PortfolioVO portfolio = PortfolioDAO.getPortfolioById(portfolioId);
-		LinkedHashMap<Stock, Integer> stocks = portfolio.getStocks();
+		LinkedHashMap<StockVO, Integer> stocks = portfolio.getStocks();
 		request.setAttribute("portfolio", portfolio);
 		ArrayList<RecordVO> records = PortfolioDAO.getPortfolioRecord(portfolioId);
 		request.setAttribute("records", records);
@@ -552,14 +572,79 @@ public class MainServlet extends HttpServlet {
 	}
 
 	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
-		String id = "1EBHWq75uRIt2BDdtqZ_rKDukeFbH-j2sekwkTqhxruU";
-		String url = "https://docs.google.com/spreadsheets/d/1EBHWq75uRIt2BDdtqZ_rKDukeFbH-j2sekwkTqhxruU";
-		SpreadsheetService service = new SpreadsheetService(
-				"google-spreadsheet");
-
 	}
 
+	private void buyStock(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
+		JsonObject json = new JsonObject();
+		response.setContentType("application/json");
+		int shares = -1, id = -1;
+		String symbol = "";
+		if(request.getParameter("symbol") == null || request.getParameter("shares") == null ||
+				request.getParameter("id") == null) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Invalid parameter provided.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		symbol = request.getParameter("symbol");
+		try{
+			shares = Integer.parseInt(request.getParameter("shares"));
+		} catch (Exception e) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Shares value too big.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		id = Integer.parseInt(request.getParameter("id"));
+		String[] allowedArray = ALLOWED_STOCKS.split(",");
+		if(!Arrays.asList(allowedArray).contains(symbol)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Stock not allowed.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		BigDecimal price;
+		boolean firstTime = PortfolioDAO.checkForInitialPurchase(id, symbol);
+		if(firstTime){
+			price = PortfolioDAO.findInitialStockPrice(symbol);
+			price = PortfolioDAO.initialCurrencyConvert(symbol, price);
+		} else {
+			price = PortfolioDAO.findCurrentStockPrice(symbol);
+			price = PortfolioDAO.liveCurrencyConvert(symbol, price);
+		}
 
+		BigDecimal totalPrice = price.multiply(new BigDecimal(shares));
+		BigDecimal balance =  PortfolioDAO.findPortfolioBalance(id);
+		if(totalPrice.compareTo(balance) == 1){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Total price exceeds balance.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		BigDecimal newBalance = balance.subtract(totalPrice);
+		if(!PortfolioDAO.insertStockToPortfolio(id, symbol, shares, firstTime)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to insert stock into databasse.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		if(!PortfolioDAO.removeMoneyFromPortfolio(id, totalPrice.negate())){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to substract money from balance.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		if(!PortfolioDAO.recordStockPurchase(symbol, shares, price, id)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to record transaction.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		json.addProperty("status", "success");
+		response.getWriter().write(json.toString());
+		return;
+	}
+	
 	private void logOut(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
 		HttpSession session=request.getSession();  
 		session.invalidate();  
@@ -573,4 +658,5 @@ public class MainServlet extends HttpServlet {
 		}
 		return true;
 	}
+	
 }

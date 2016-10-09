@@ -23,6 +23,7 @@ import org.jasypt.util.text.BasicTextEncryptor;
 
 import com.cs490.database.MySqlConnector;
 import com.cs490.vo.PortfolioVO;
+import com.cs490.vo.StockVO;
 import com.cs490.vo.UserVO;
 
 import yahoofinance.Stock;
@@ -253,7 +254,7 @@ public class UserDAO {
 				port.setName(rs.getString(2));
 				port.setBalance(rs.getBigDecimal(3));
 				port.setUserName(userName);
-				LinkedHashMap<Stock, Integer> stocks = PortfolioDAO.findStocksByPortfolioId(rs.getInt(1));
+				LinkedHashMap<StockVO, Integer> stocks = PortfolioDAO.findStocksByPortfolioId(rs.getInt(1));
 				port.setStocks(stocks);
 				portfolios.add(port);
 			}
