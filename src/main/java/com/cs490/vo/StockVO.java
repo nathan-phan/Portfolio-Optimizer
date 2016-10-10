@@ -28,7 +28,7 @@ public class StockVO {
 	public StockVO(String symbol) throws JsonParseException, JsonMappingException, IOException{
 		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
 		if(Arrays.asList(niftyArray).contains(symbol)){
-			GoogleStock stock = new GoogleStock(symbol);
+			GoogleStock stock = new GoogleStock(symbol.replace("&", "%26"));
 			this.symbol = stock.getSymbol();
 			this.exchange = stock.getExchange();
 			this.price = stock.getPrice();
@@ -52,7 +52,7 @@ public class StockVO {
 			this.foreignPreviousClosingPrice = stock.getQuote().getPreviousClose();
 			this.previousClosingPrice = stock.getQuote().getPreviousClose();
 			this.name = stock.getName();
-			this.currency = symbol.contains(".si") ? "SGD":"USD";
+			this.currency = symbol.contains(".SI") ? "SGD":"USD";
 		}
 	}
 

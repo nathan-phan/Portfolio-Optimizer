@@ -99,9 +99,10 @@
 												value='${entry.key.symbol}' /></span>)</span> - <span class='red'><c:out
 											value='${entry.key.exchange}' /></span> -
 									<c:if test='${entry.key.currency ne "USD"}'>
-												<span class='bold'>${entry.key.currency}${entry.key.foreignPrice}</span> - 
+										<span class='bold'>${entry.key.currency}${entry.key.foreignPrice}</span> - 
 												</c:if>
-									<span class='bold'><fmt:formatNumber value="${entry.key.price}" type="currency" /></span>
+									<span class='bold'><fmt:formatNumber
+											value="${entry.key.price}" type="currency" /></span>
 									<div class="secondary-content">${entry.value}</div>
 								</div>
 								<div class="collapsible-body">
@@ -109,12 +110,15 @@
 										<div class='col s4 stock-info-header'>Current price</div>
 										<div class='stock-price col s8'>
 											<c:if test='${entry.key.currency ne "USD"}'>
-                        <span class='bold'>${entry.key.currency}${entry.key.foreignPrice}</span> - 
+												<span class='bold'>${entry.key.currency}${entry.key.foreignPrice}</span> - 
                         </c:if>
-											<span class='bold'><fmt:formatNumber value="${entry.key.price }" type="currency" /></span>
-											<a href='#sell-stock-modal'
-												class="waves-effect btn blue modal-trigger right"> <span>Sell
-													stock</span></a>
+											<span class='bold'><fmt:formatNumber
+													value="${entry.key.price }" type="currency" /></span> <a
+												href='#sell-stock-modal' data-shares="${entry.value}"
+												data-symbol='<c:out value='${entry.key.currency eq "INR" ? "NSE:".concat(entry.key.symbol) : entry.key.symbol}'/>'
+												class="waves-effect btn blue modal-trigger right sell-button">
+												<span>Sell stock</span>
+											</a>
 										</div>
 									</div>
 									<div class='row prev-closing-row'>
@@ -122,22 +126,24 @@
 											price</div>
 										<div class='stock-closing-price col s8'>
 											<c:if test='${entry.key.currency ne "USD"}'>
-                        <span class='bold'>${entry.key.currency}${entry.key.foreignPreviousClosingPrice}</span> - 
+												<span class='bold'>${entry.key.currency}${entry.key.foreignPreviousClosingPrice}</span> - 
                         </c:if>
-											<span class='bold'><fmt:formatNumber value="${entry.key.previousClosingPrice}"
-												type="currency" /></span>
+											<span class='bold'><fmt:formatNumber
+													value="${entry.key.previousClosingPrice}" type="currency" /></span>
 										</div>
 									</div>
 									<div class='row'>
 										<div class='col s4 stock-info-header'>Price change</div>
 										<div
-											class='stock-price-change col s8 ${entry.key.change lt 0? 'red-text bold':'green-text bold' }'>
+											class='stock-price-change col s8 ${entry.key.change lt 0? "
+											red-text bold":"green-text bold" }'>
 											<c:if test='${entry.key.currency ne "USD"}'>${entry.key.foreignChange}${entry.key.currency} &nbsp;&nbsp; </c:if>${entry.key.change}USD</div>
 									</div>
 									<div class='row'>
 										<div class='col s4 stock-info-header'>Percent change</div>
 										<div
-											class='stock-change-percent col s8 ${entry.key.change lt 0? 'red-text bold':'green-text bold' }'>${entry.key.changePercent}%</div>
+											class='stock-change-percent col s8 ${entry.key.change lt 0? "
+											red-text bold":"green-text bold" }'>${entry.key.changePercent}%</div>
 									</div>
 								</div>
 							</li>
@@ -163,22 +169,29 @@
 								class="waves-effect btn red modal-trigger right"> <span>Add
 									stock</span></a>
 						</div>
-						<div class="col s12 display-none">
+						<div class="col s12 violation-block display-none">
 							<span class='bold'>Violation</span>:
 							<ul class='bold'>
-								<li id='violation-1' class='display-none'>Minimum 7 stocks,
-									maximum 10.</li>
-								<li id='violation-2' class='display-none'>70% of the
-									portfolio value should be in domestic stocks and 30% in
-									overseas stocks.</li>
-								<li id='violation-3' class='display-none'>No more than 10%
-									cash in the portfolio at any time</li>
+								<li id='violation-1' class='display-none red-text'>Minimum
+									7 stocks, maximum 10. (${size} stocks available in portfolio)</li>
+								<li id='violation-2' class='display-none red-text'>70% of
+									the portfolio value should be in domestic stocks and 30% in
+									overseas stocks. (Domestic value is <fmt:formatNumber
+										type="number" maxFractionDigits="2" minFractionDigits="2"
+										value="${domesticPercent}" />%)
+								</li>
+								<li id='violation-3' class='display-none red-text'>No more
+									than 10% cash in the portfolio at any time (Currently portfolio
+									has <fmt:formatNumber type="number" maxFractionDigits="2"
+										minFractionDigits="2" value="${cashPercent}" />% in cash)
+								</li>
 							</ul>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class='card guidelines-card'>
+			<div
+				class='card guidelines-card <c:if test="${size ne 0}">display-none</c:if>'>
 				<div class='card-content'>
 					<div class="row">
 						<div class="col s12">
@@ -370,59 +383,81 @@
 		</div>
 	</div>
 
+	<div id="sell-stock-modal" class="modal">
+		<div class="modal-content">
+			<div class="row">
+				<div class="col s12">
+					<h5>Sell Stocks</h5>
+				</div>
+			</div>
+			<div class="row ">
+				<div class="col s12">
+					<form id='sell-stock-form' onSubmit="return false;">
+						<div class="row">
+							<div class="col s12">Please enter the shares number you
+								wish to sell</div>
+							<br> <br>
+							<div class="input-field col s12">
+								<input id="sell-share-input" name="shares" type="text"
+									class="required-input" placeholder="Enter a number"> <label
+									id='sell-share-label' for="sell-share-input" data-error="">Shares</label>
+							</div>
+						</div>
+						<input type='hidden' name='id' value='${param.id}'>
+						<input type='hidden' name='available' id="available-share" value=''> 
+						 <input
+							type='hidden' name='symbol' id="sell-symbol-input" value=''>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<a id='sell-stock-submit' class="modal-action btn-flat">Sell</a> <a
+				class="modal-action modal-close btn-flat">Cancel</a>
+		</div>
+	</div>
+
 	<script>
 		$(function() {
 			$('.modal-trigger').leanModal({
 				dismissible : false
 			});
-			$('#deposit-submit').click(
-					function() {
-						var id = '${param.id}';
-						$('#deposit-input').val(
-								$('#deposit-input').val().trim());
-						var amount = $('#deposit-input').val();
-						var regex = /^\d+(?:\.\d{0,2})?$/;
-						if (!amount.match(regex)) {
-							$('#deposit-input').addClass('invalid');
-							$('#deposit-label').attr('data-error',
-									"Invalid money value");
-							return;
-						} else {
-							depositMoney(amount, id);
-							$('#deposit-modal').closeModal();
-						}
-					});
+			if ('${size}' != '0') {
+				if (Number('${size}') < 7 || Number('${size}') > 10) {
+					$('.violation-block').removeClass('display-none');
+					$('#violation-1').removeClass('display-none');
+				}
+				if (Number('${domesticPercent}') != 70) {
+					$('.violation-block').removeClass('display-none');
+					$('#violation-2').removeClass('display-none');
+				}
+				if (Number('${cashPercent}') > 10) {
+					$('.violation-block').removeClass('display-none');
+					$('#violation-3').removeClass('display-none');
+				}
+			}
+			$('.sell-button').click(function() {
+				$('#sell-symbol-input').val($(this).attr('data-symbol'));
+				$('#available-share').val($(this).attr('data-shares'));
+			})
 
-			$('#withdraw-submit').click(
-					function() {
-						var id = '${param.id}';
-						$('#withdraw-input').val(
-								$('#withdraw-input').val().trim());
-						var amount = $('#withdraw-input').val();
-						var regex = /^\d+(?:\.\d{0,2})?$/;
-						if (!amount.match(regex)) {
-							$('#withdraw-input').addClass('invalid');
-							$('#withdraw-label').attr('data-error',
-									"Invalid money value");
-							return;
-						}
-						var amountFloat = parseFloat(amount);
-						var balanceFloat = parseFloat('${portfolio.balance}');
-						if (amountFloat > balanceFloat) {
-							$('#withdraw-input').addClass('invalid');
-							$('#withdraw-label').attr('data-error',
-									"Withdraw amount exceeds balance");
-							return;
-						}
-						amount = '-' + amount;
-						withdrawMoney(amount, id);
-						$('#withdraw-modal').closeModal();
-					});
+			$('#deposit-submit').click(function() {
+				var id = '${param.id}';
+				depositSubmit(id)
+			});
 
-			$('#add-stock-submit').click(
-					function() {
-						buyStock();
-					});
+			$('#withdraw-submit').click(function() {
+				var id = '${param.id}';
+				withdrawSubmit(id);
+			});
+
+			$('#add-stock-submit').click(function() {
+				buyStock();
+			});
+
+			$('#sell-stock-submit').click(function() {
+				sellStock();
+			})
 		});
 	</script>
 </body>

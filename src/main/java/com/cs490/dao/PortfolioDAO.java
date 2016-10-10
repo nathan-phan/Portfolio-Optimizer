@@ -188,6 +188,35 @@ public class PortfolioDAO {
 		}
 		return result;
 	}
+	
+	public static boolean removeStocksFromPortfolio(int id, String symbol, int shares) throws SQLException {
+		boolean result = false;
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		PreparedStatement prepStmt = null;
+		try {
+				String query =  "UPDATE portfolio_stocks SET shares = (shares - ?) WHERE portfolio_id = ? AND stock_symbol = ?";
+				prepStmt = connection.prepareStatement(query);
+				prepStmt.setInt(1, shares);
+				prepStmt.setInt(2, id);
+				prepStmt.setString(3, symbol);
+				prepStmt.executeUpdate();
+				prepStmt.close();
+			
+			result = true;
+		} catch(Exception e){
+			e.printStackTrace();
+			return result;
+		} finally {
+			connection.close();
+		}
+		return result;
+	}
 
 	public static boolean addMoneyToPortfolio(int id, BigDecimal amount) throws SQLException{
 		boolean result = false;
@@ -459,6 +488,40 @@ public class PortfolioDAO {
 			String query =  "INSERT INTO history (transaction_type, stock_symbol, shares, share_price, balance, time, portfolio_id) VALUES (?,?,?,?,?,?,?)";
 			prepStmt = connection.prepareStatement(query);
 			prepStmt.setString(1, "Buy");
+			prepStmt.setString(2, symbol);
+			prepStmt.setInt(3, shares);
+			prepStmt.setBigDecimal(4, price);
+			prepStmt.setBigDecimal(5, currentBalance);
+			prepStmt.setString(6, timeStamp);
+			prepStmt.setInt(7, id);
+			prepStmt.executeUpdate();
+			prepStmt.close();
+			result = true;
+		} catch(Exception e) {
+			e.printStackTrace();
+			return result;
+		} finally {
+			connection.close();
+		}
+		return result;
+	}
+	
+	public static boolean recordStockRemoval(String symbol, int shares, BigDecimal price, int id) throws SQLException{
+		boolean result = false;
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+			BigDecimal currentBalance = findPortfolioBalance(id);
+			String query =  "INSERT INTO history (transaction_type, stock_symbol, shares, share_price, balance, time, portfolio_id) VALUES (?,?,?,?,?,?,?)";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setString(1, "Sell");
 			prepStmt.setString(2, symbol);
 			prepStmt.setInt(3, shares);
 			prepStmt.setBigDecimal(4, price);

@@ -52,12 +52,12 @@ public class MainServlet extends HttpServlet {
 			+ "NSE:INFY,NSE:ITC,NSE:KOTAKBANK,NSE:LT,NSE:LUPIN,NSE:M&M,NSE:MARUTI,NSE:NTPC,NSE:ONGC,NSE:PNB,"
 			+ "NSE:POWERGRID,NSE:RELIANCE,NSE:SBIN,NSE:SUNPHARMA,NSE:TATAMOTORS,NSE:TATAPOWER,"
 			+ "NSE:TATASTEEL,NSE:TCS,NSE:TECHM,NSE:ULTRACEMCO,NSE:VEDL,NSE:WIPRO,NSE:YESBANK,NSE:ZEEL,"
-			+ "Z74.si,S58.si,U14.si,D05.si,O39.si,U11.si,"
-			+ "F34.si,BN4.si,H78.si,G13.si,C07.si,C31.si,"
-			+ "C6L.si,Y92.si,MC0.si,C09.si,S63.si,S51.si,U96.si,"
-			+ "NS8U.si,E5H.si,C61U.si,S68.si,C38U.si,A17U.si,"
-			+ "T39.si,CC3.si,BS6.si,S59.si,C52.si,EB5.si,"
-			+ "S08.si,T82U.si,K71U.si,N03.si,JOBS,ATV,ACTS,"
+			+ "Z74.SI,S58.SI,U14.SI,D05.SI,O39.SI,U11.SI,"
+			+ "F34.SI,BN4.SI,H78.SI,G13.SI,C07.SI,C31.SI,"
+			+ "C6L.SI,Y92.SI,MC0.SI,C09.SI,S63.SI,S51.SI,U96.SI,"
+			+ "NS8U.SI,E5H.SI,C61U.SI,S68.SI,C38U.SI,A17U.SI,"
+			+ "T39.SI,CC3.SI,BS6.SI,S59.SI,C52.SI,EB5.SI,"
+			+ "S08.SI,T82U.SI,K71U.SI,N03.SI,JOBS,ATV,ACTS,"
 			+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
 			+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
 			+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
@@ -78,12 +78,12 @@ public class MainServlet extends HttpServlet {
 			+ "NSE:POWERGRID,NSE:RELIANCE,NSE:SBIN,NSE:SUNPHARMA,NSE:TATAMOTORS,NSE:TATAPOWER,"
 			+ "NSE:TATASTEEL,NSE:TCS,NSE:TECHM,NSE:ULTRACEMCO,NSE:VEDL,NSE:WIPRO,NSE:YESBANK,NSE:ZEEL";
 
-	public static final String STRAIT_STOCKS = "Z74.si,S58.si,U14.si,D05.si,O39.si,U11.si,"
-			+ "F34.si,BN4.si,H78.si,G13.si,C07.si,C31.si,"
-			+ "C6L.si,Y92.si,MC0.si,C09.si,S63.si,S51.si,U96.si,"
-			+ "NS8U.si,E5H.si,C61U.si,S68.si,C38U.si,A17U.si,"
-			+ "T39.si,CC3.si,BS6.si,S59.si,C52.si,EB5.si,"
-			+ "S08.si,T82U.si,K71U.si,N03.si";
+	public static final String STRAIT_STOCKS = "Z74.SI,S58.SI,U14.SI,D05.SI,O39.SI,U11.SI,"
+			+ "F34.SI,BN4.SI,H78.SI,G13.SI,C07.SI,C31.SI,"
+			+ "C6L.SI,Y92.SI,MC0.SI,C09.SI,S63.SI,S51.SI,U96.SI,"
+			+ "NS8U.SI,E5H.SI,C61U.SI,S68.SI,C38U.SI,A17U.SI,"
+			+ "T39.SI,CC3.SI,BS6.SI,S59.SI,C52.SI,EB5.SI,"
+			+ "S08.SI,T82U.SI,K71U.SI,N03.SI";
 
 	public static final String ADR_STOCKS = "JOBS,ATV,ACTS,"
 			+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
@@ -92,7 +92,7 @@ public class MainServlet extends HttpServlet {
 			+ "LDK,LTON,LFT,MR,NTES,EDU,NINE,NED,PWRD,PTR,SOL,GAME,SNDA,"
 			+ "SCR,SHI,SOLF,SPRD,STP,NCTY,TCM,TSL,VIT,VIMC,VISN,WH,WX,XSEL,"
 			+ "XIN,YZC,YGE";
-	
+
 	public static final String OVERSEA_STOCKS = "NSE:ACC,NSE:ADANIPORTS,NSE:AMBUJACEM,NSE:ASIANPAINT,NSE:AXISBANK,"
 			+ "NSE:BAJAJ-AUTO,NSE:BANKBARODA,NSE:BHARTIARTL,NSE:BHEL,NSE:BOSCHLTD,NSE:BPCL,NSE:CAIRN,"
 			+ "NSE:CIPLA,NSE:COALINDIA,NSE:DRREDDY,NSE:GAIL,NSE:GRASIM,NSE:HCLTECH,NSE:HDFC,NSE:HDFCBANK"
@@ -100,25 +100,25 @@ public class MainServlet extends HttpServlet {
 			+ "NSE:INFY,NSE:ITC,NSE:KOTAKBANK,NSE:LT,NSE:LUPIN,NSE:M&M,NSE:MARUTI,NSE:NTPC,NSE:ONGC,NSE:PNB,"
 			+ "NSE:POWERGRID,NSE:RELIANCE,NSE:SBIN,NSE:SUNPHARMA,NSE:TATAMOTORS,NSE:TATAPOWER,"
 			+ "NSE:TATASTEEL,NSE:TCS,NSE:TECHM,NSE:ULTRACEMCO,NSE:VEDL,NSE:WIPRO,NSE:YESBANK,NSE:ZEEL,"
-			+ "Z74.si,S58.si,U14.si,D05.si,O39.si,U11.si,"
-			+ "F34.si,BN4.si,H78.si,G13.si,C07.si,C31.si,"
-			+ "C6L.si,Y92.si,MC0.si,C09.si,S63.si,S51.si,U96.si,"
-			+ "NS8U.si,E5H.si,C61U.si,S68.si,C38U.si,A17U.si,"
-			+ "T39.si,CC3.si,BS6.si,S59.si,C52.si,EB5.si,"
-			+ "S08.si,T82U.si,K71U.si,N03.si,JOBS,ATV,ACTS,"
+			+ "Z74.SI,S58.SI,U14.SI,D05.SI,O39.SI,U11.SI,"
+			+ "F34.SI,BN4.SI,H78.SI,G13.SI,C07.SI,C31.SI,"
+			+ "C6L.SI,Y92.SI,MC0.SI,C09.SI,S63.SI,S51.SI,U96.SI,"
+			+ "NS8U.SI,E5H.SI,C61U.SI,S68.SI,C38U.SI,A17U.SI,"
+			+ "T39.SI,CC3.SI,BS6.SI,S59.SI,C52.SI,EB5.SI,"
+			+ "S08.SI,T82U.SI,K71U.SI,N03.SI,JOBS,ATV,ACTS,"
 			+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
 			+ ",CMM,CMED,CHL,CEO,NPD,SNP,ZNH,CSUN,CNTF,CHA,CHU,CEDU,CISG,"
 			+ "CTRP,DGW,EJ,LONG,FMCN,GA,GSH,GU,HMIN,HNP,HRAY,JASO,KONG,"
 			+ "LDK,LTON,LFT,MR,NTES,EDU,NINE,NED,PWRD,PTR,SOL,GAME,SNDA,"
 			+ "SCR,SHI,SOLF,SPRD,STP,NCTY,TCM,TSL,VIT,VIMC,VISN,WH,WX,XSEL,"
 			+ "XIN,YZC,YGE";
-	
+
 	public static final double INITIAL_USD_INR = 66.722975;
-	
+
 	public static final double INITIAL_USD_SGD = 1.35552;
-	
+
 	public static final String CURRENCY_API_KEY = "da54f57878f7a80edcfce214d7889683";
-	
+
 	@Override																	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); 
@@ -273,6 +273,15 @@ public class MainServlet extends HttpServlet {
 		if(request.getRequestURI().contains("/stock/buy")){
 			try {
 				buyStock(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+
+		if(request.getRequestURI().contains("/stock/sell")){
+			try {
+				sellStock(request, response);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -480,31 +489,30 @@ public class MainServlet extends HttpServlet {
 				stock.setChange(foreignChange.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP));
 				stock.setPreviousClosingPrice(prevClose.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP));
 				stock.setPrice(convertedPrice);
-				totalStockValue.add(convertedPrice.multiply(new BigDecimal(shares)));
-				overseaValue.add(convertedPrice.multiply(new BigDecimal(shares)));
+				totalStockValue = totalStockValue.add(convertedPrice.multiply(new BigDecimal(shares)));
+				overseaValue = overseaValue.add(convertedPrice.multiply(new BigDecimal(shares)));
 			} else if(stock.getCurrency().equals("SGD")){
 				BigDecimal originalPrice = stock.getForeignPrice(); 
 				BigDecimal convertedPrice = originalPrice.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP);
 				stock.setPrice(convertedPrice);
 				BigDecimal prevClose = stock.getForeignPreviousClosingPrice();
 				stock.setPreviousClosingPrice(prevClose.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP));
-				totalStockValue.add(convertedPrice.multiply(new BigDecimal(shares)));
+				totalStockValue = totalStockValue.add(convertedPrice.multiply(new BigDecimal(shares)));
 				BigDecimal foreignChange = stock.getForeignChange();
 				stock.setChange(foreignChange.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP));
-				overseaValue.add(convertedPrice.multiply(new BigDecimal(shares)));
+				overseaValue = overseaValue.add(convertedPrice.multiply(new BigDecimal(shares)));
 			} else if(Arrays.asList(adrArray).contains(stock.getSymbol())){
-				totalStockValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
-				overseaValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
+				totalStockValue = totalStockValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
+				overseaValue = overseaValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
 			} else {
-				totalStockValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
+				totalStockValue = totalStockValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
 			}
 		}
 		portfolio.setStocks(stocks);
 		if(totalStockValue.compareTo(new BigDecimal(0)) == 1){
 			BigDecimal overseaPercent = overseaValue.divide(totalStockValue,4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
 			BigDecimal domesticPercent = new BigDecimal(100).subtract(overseaPercent);
-			BigDecimal cashPercent = portfolio.getBalance().divide(totalStockValue.add(portfolio.getBalance()),4, RoundingMode.HALF_UP);
-			
+			BigDecimal cashPercent = portfolio.getBalance().divide(totalStockValue.add(portfolio.getBalance()),4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
 			request.setAttribute("totalValue", totalStockValue);
 			request.setAttribute("overseaPercent", overseaPercent);
 			request.setAttribute("domesticPercent", domesticPercent);
@@ -512,6 +520,7 @@ public class MainServlet extends HttpServlet {
 			request.setAttribute("foreignValue", overseaValue);
 			request.setAttribute("size", stocks.size());
 		}
+		request.setAttribute("size", stocks.size());
 		request.setAttribute("portfolio", portfolio);
 		ArrayList<RecordVO> records = PortfolioDAO.getPortfolioRecord(portfolioId);
 		request.setAttribute("records", records);
@@ -670,7 +679,6 @@ public class MainServlet extends HttpServlet {
 			response.getWriter().write(json.toString());
 			return;
 		}
-		BigDecimal newBalance = balance.subtract(totalPrice);
 		if(!PortfolioDAO.insertStockToPortfolio(id, symbol, shares, firstTime)){
 			json.addProperty("status", "failed");
 			json.addProperty("errorMessage", "Failed to insert stock into databasse.");
@@ -693,7 +701,65 @@ public class MainServlet extends HttpServlet {
 		response.getWriter().write(json.toString());
 		return;
 	}
-	
+
+	private void sellStock(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
+		JsonObject json = new JsonObject();
+		response.setContentType("application/json");
+		int shares = -1, id = -1;
+		String symbol = "";
+		if(request.getParameter("symbol") == null || request.getParameter("shares") == null ||
+				request.getParameter("id") == null) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Invalid parameter provided.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		symbol = request.getParameter("symbol");
+		try{
+			shares = Integer.parseInt(request.getParameter("shares"));
+		} catch (Exception e) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Shares value too big.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		
+		id = Integer.parseInt(request.getParameter("id"));
+		BigDecimal price;
+		price = PortfolioDAO.findCurrentStockPrice(symbol);
+		price = PortfolioDAO.liveCurrencyConvert(symbol, price);
+
+		BigDecimal totalPrice = price.multiply(new BigDecimal(shares));
+		BigDecimal balance =  PortfolioDAO.findPortfolioBalance(id);
+		if(totalPrice.compareTo(balance) == 1){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Total price exceeds balance.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		if(!PortfolioDAO.removeStocksFromPortfolio(id, symbol, shares)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to remove stocks from portfolio.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		if(!PortfolioDAO.addMoneyToPortfolio(id, totalPrice)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to add money to balance.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		if(!PortfolioDAO.recordStockRemoval(symbol, shares, price, id)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to record transaction.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		json.addProperty("status", "success");
+		response.getWriter().write(json.toString());
+		return;
+	}
+
 	private void logOut(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
 		HttpSession session=request.getSession();  
 		session.invalidate();  
@@ -707,5 +773,5 @@ public class MainServlet extends HttpServlet {
 		}
 		return true;
 	}
-	
+
 }
