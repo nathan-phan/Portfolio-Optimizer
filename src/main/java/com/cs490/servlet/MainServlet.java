@@ -2,6 +2,7 @@ package com.cs490.servlet;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
@@ -115,6 +116,8 @@ public class MainServlet extends HttpServlet {
 	public static final double INITIAL_USD_INR = 66.722975;
 	
 	public static final double INITIAL_USD_SGD = 1.35552;
+	
+	public static final String CURRENCY_API_KEY = "da54f57878f7a80edcfce214d7889683";
 	
 	@Override																	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -455,6 +458,7 @@ public class MainServlet extends HttpServlet {
 		if(request.getParameter("id") != null) {
 			portfolioId = Integer.parseInt(request.getParameter("id"));
 		}
+		LinkedHashMap<String, Double> rates = PortfolioDAO.getExchangeRates();
 		String[] straitArray = STRAIT_STOCKS.split(",");
 		String[] adrArray = ADR_STOCKS.split(",");
 		String[] niftyArray = NIFTY_STOCKS.split(",");
@@ -463,6 +467,51 @@ public class MainServlet extends HttpServlet {
 		request.setAttribute("overseas", OVERSEA_STOCKS);
 		PortfolioVO portfolio = PortfolioDAO.getPortfolioById(portfolioId);
 		LinkedHashMap<StockVO, Integer> stocks = portfolio.getStocks();
+		BigDecimal totalStockValue = new BigDecimal(0);
+		BigDecimal overseaValue = new BigDecimal(0);
+		for(StockVO stock : stocks.keySet()) {
+			int shares = stocks.get(stock);
+			if(stock.getCurrency().equals("INR")){
+				BigDecimal originalPrice = stock.getForeignPrice(); 
+				BigDecimal convertedPrice = originalPrice.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP);
+				stock.setPrice(convertedPrice);
+				BigDecimal prevClose = stock.getForeignPreviousClosingPrice();
+				BigDecimal foreignChange = stock.getForeignChange();
+				stock.setChange(foreignChange.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP));
+				stock.setPreviousClosingPrice(prevClose.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP));
+				stock.setPrice(convertedPrice);
+				totalStockValue.add(convertedPrice.multiply(new BigDecimal(shares)));
+				overseaValue.add(convertedPrice.multiply(new BigDecimal(shares)));
+			} else if(stock.getCurrency().equals("SGD")){
+				BigDecimal originalPrice = stock.getForeignPrice(); 
+				BigDecimal convertedPrice = originalPrice.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP);
+				stock.setPrice(convertedPrice);
+				BigDecimal prevClose = stock.getForeignPreviousClosingPrice();
+				stock.setPreviousClosingPrice(prevClose.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP));
+				totalStockValue.add(convertedPrice.multiply(new BigDecimal(shares)));
+				BigDecimal foreignChange = stock.getForeignChange();
+				stock.setChange(foreignChange.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP));
+				overseaValue.add(convertedPrice.multiply(new BigDecimal(shares)));
+			} else if(Arrays.asList(adrArray).contains(stock.getSymbol())){
+				totalStockValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
+				overseaValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
+			} else {
+				totalStockValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
+			}
+		}
+		portfolio.setStocks(stocks);
+		if(totalStockValue.compareTo(new BigDecimal(0)) == 1){
+			BigDecimal overseaPercent = overseaValue.divide(totalStockValue,4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
+			BigDecimal domesticPercent = new BigDecimal(100).subtract(overseaPercent);
+			BigDecimal cashPercent = portfolio.getBalance().divide(totalStockValue.add(portfolio.getBalance()),4, RoundingMode.HALF_UP);
+			
+			request.setAttribute("totalValue", totalStockValue);
+			request.setAttribute("overseaPercent", overseaPercent);
+			request.setAttribute("domesticPercent", domesticPercent);
+			request.setAttribute("cashPercent", cashPercent);
+			request.setAttribute("foreignValue", overseaValue);
+			request.setAttribute("size", stocks.size());
+		}
 		request.setAttribute("portfolio", portfolio);
 		ArrayList<RecordVO> records = PortfolioDAO.getPortfolioRecord(portfolioId);
 		request.setAttribute("records", records);

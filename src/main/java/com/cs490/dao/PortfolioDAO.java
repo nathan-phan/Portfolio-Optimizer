@@ -565,15 +565,26 @@ public class PortfolioDAO {
 		return price;
 	}
 	
-	public static BigDecimal liveCurrencyConvert(String symbol, BigDecimal price) throws MalformedURLException, IOException {
-		String jsonContent = IOUtils.toString(new URL("http://www.apilayer.net/api/live?access_key=da54f57878f7a80edcfce214d7889683&format=1"), Charset.forName("UTF-8"));
+	public static LinkedHashMap<String, Double> getExchangeRates() throws MalformedURLException, IOException{
+		String jsonContent = IOUtils.toString(new URL("http://www.apilayer.net/api/live?access_key=" + MainServlet.CURRENCY_API_KEY + "&format=1"), Charset.forName("UTF-8"));
 		JsonParser jsonParser = new JsonParser();
-		String irnRate = jsonParser.parse(jsonContent).getAsJsonObject().get("quotes").getAsJsonObject().get("USDINR").getAsString();
+		String inrRate = jsonParser.parse(jsonContent).getAsJsonObject().get("quotes").getAsJsonObject().get("USDINR").getAsString();
+		String sgdRate = jsonParser.parse(jsonContent).getAsJsonObject().get("quotes").getAsJsonObject().get("USDSGD").getAsString();
+		LinkedHashMap<String, Double> rates = new LinkedHashMap<String, Double>();
+		rates.put("USDINR", Double.valueOf(inrRate));
+		rates.put("USDSGD", Double.valueOf(sgdRate));
+		return rates;
+	}
+	
+	public static BigDecimal liveCurrencyConvert(String symbol, BigDecimal price) throws MalformedURLException, IOException {
+		String jsonContent = IOUtils.toString(new URL("http://www.apilayer.net/api/live?access_key=" + MainServlet.CURRENCY_API_KEY + "&format=1"), Charset.forName("UTF-8"));
+		JsonParser jsonParser = new JsonParser();
+		String inrRate = jsonParser.parse(jsonContent).getAsJsonObject().get("quotes").getAsJsonObject().get("USDINR").getAsString();
 		String sgdRate = jsonParser.parse(jsonContent).getAsJsonObject().get("quotes").getAsJsonObject().get("USDSGD").getAsString();
 		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
 		String[] straitArray = MainServlet.STRAIT_STOCKS.split(",");
 		if(Arrays.asList(niftyArray).contains(symbol)){
-			return price.divide(new BigDecimal(irnRate), 4, RoundingMode.HALF_UP);
+			return price.divide(new BigDecimal(inrRate), 4, RoundingMode.HALF_UP);
 		}
 		if(Arrays.asList(straitArray).contains(symbol)){
 			return price.divide(new BigDecimal(sgdRate),4, RoundingMode.HALF_UP);

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 
+import com.cs490.dao.PortfolioDAO;
 import com.cs490.servlet.MainServlet;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -15,10 +16,14 @@ public class StockVO {
 	private String name;
 	private String symbol;
 	private String exchange; 
-	private BigDecimal price; 
-	private BigDecimal change; 
+	private BigDecimal price;
+	private BigDecimal foreignPrice;
+	private BigDecimal change;
+	private BigDecimal foreignChange;
 	private BigDecimal changePercent; 
 	private BigDecimal previousClosingPrice;
+	private BigDecimal foreignPreviousClosingPrice;
+	private String currency;
 
 	public StockVO(String symbol) throws JsonParseException, JsonMappingException, IOException{
 		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
@@ -27,19 +32,27 @@ public class StockVO {
 			this.symbol = stock.getSymbol();
 			this.exchange = stock.getExchange();
 			this.price = stock.getPrice();
+			this.foreignChange = stock.getChange();
 			this.change = stock.getChange();
 			this.changePercent = stock.getChangePercent();
 			this.previousClosingPrice = stock.getPreviousClosingPrice();
+			this.foreignPreviousClosingPrice = stock.getPreviousClosingPrice();
 			this.name = stock.getName();
+			this.foreignPrice = stock.getPrice();
+			this.currency = "INR";
 		} else {
 			Stock stock = YahooFinance.get(symbol);
 			this.symbol = stock.getSymbol();
 			this.exchange = stock.getStockExchange();
+			this.foreignPrice = stock.getQuote().getPrice();
 			this.price = stock.getQuote().getPrice();
+			this.foreignChange = stock.getQuote().getChange();
 			this.change = stock.getQuote().getChange();
 			this.changePercent = stock.getQuote().getChangeInPercent();
+			this.foreignPreviousClosingPrice = stock.getQuote().getPreviousClose();
 			this.previousClosingPrice = stock.getQuote().getPreviousClose();
 			this.name = stock.getName();
+			this.currency = symbol.contains(".si") ? "SGD":"USD";
 		}
 	}
 
@@ -99,5 +112,36 @@ public class StockVO {
 		this.name = name;
 	}
 
+	public BigDecimal getForeignPrice() {
+		return foreignPrice;
+	}
 
+	public void setForeignPrice(BigDecimal foreignPrice) {
+		this.foreignPrice = foreignPrice;
+	}
+
+	public BigDecimal getForeignPreviousClosingPrice() {
+		return foreignPreviousClosingPrice;
+	}
+
+	public void setForeignPreviousClosingPrice(BigDecimal foreignPreviousClosingPrice) {
+		this.foreignPreviousClosingPrice = foreignPreviousClosingPrice;
+	}
+
+	public String getCurrency() {
+		return currency;
+	}
+
+	public void setCurrency(String currency) {
+		this.currency = currency;
+	}
+
+	public BigDecimal getForeignChange() {
+		return foreignChange;
+	}
+
+	public void setForeignChange(BigDecimal foreignChange) {
+		this.foreignChange = foreignChange;
+	}
+	
 }

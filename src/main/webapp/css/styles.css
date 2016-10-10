@@ -308,6 +308,11 @@ label[data-error]:after {
 	color: red;
 }
 
+.red {
+	color: white;
+	font-weight: 500;
+}
+
 .allowed-stock-card {
 	margin: 15px 20px;
 }
@@ -344,9 +349,11 @@ label[data-error]:after {
 	background-color: #E5E5E5;
 }
 
-#add-stock-button{
-	postion: relative;
-	top: -40px;
+#add-stock-button {
+	position: fixed !important;
+	top: 150px;
+	right: 50px;
+	color: white;
 }
 
 .stock-collection {

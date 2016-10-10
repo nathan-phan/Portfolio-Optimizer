@@ -82,7 +82,7 @@
 	<div id='current-stock-content'>
 		<div id='left-container'>
 			<c:choose>
-				<c:when test="${empty portfolio.stocks }">
+				<c:when test="${size eq 0}">
 					<div class='card empty-portfolio-card'>
 						<div class='card-content'>Looks like this portfolio is
 							empty.</div>
@@ -96,39 +96,48 @@
 								<div class="collapsible-header valign-wrapper">
 									<span class="title entry-name"><c:out
 											value='${entry.key.name}' /> <span class='entry-symbol'>(<c:out
-												value='${entry.key.symbol}' /></span>)</span> - 
-									<fmt:formatNumber value="${entry.key.price}"
-										type="currency" />
+												value='${entry.key.symbol}' /></span>)</span> - <span class='red'><c:out
+											value='${entry.key.exchange}' /></span> -
+									<c:if test='${entry.key.currency ne "USD"}'>
+												<span class='bold'>${entry.key.currency}${entry.key.foreignPrice}</span> - 
+												</c:if>
+									<span class='bold'><fmt:formatNumber value="${entry.key.price}" type="currency" /></span>
 									<div class="secondary-content">${entry.value}</div>
 								</div>
 								<div class="collapsible-body">
 									<div class='row'>
 										<div class='col s6 stock-info-header'>Current price</div>
 										<div class='stock-price col s6'>
-											<fmt:formatNumber value="${entry.key.price }"
-												type="currency" />
-												<a href='#sell-stock-modal'
-                        class="waves-effect btn blue modal-trigger right"> <span>Sell
-                          stock</span></a>
+											<c:if test='${entry.key.currency ne "USD"}'>
+                        <span class='bold'>${entry.key.currency}${entry.key.foreignPrice}</span> - 
+                        </c:if>
+											<span class='bold'><fmt:formatNumber value="${entry.key.price }" type="currency" /></span>
+											<a href='#sell-stock-modal'
+												class="waves-effect btn blue modal-trigger right"> <span>Sell
+													stock</span></a>
 										</div>
 									</div>
 									<div class='row prev-closing-row'>
 										<div class='col s6 stock-info-header'>Previous closing
 											price</div>
 										<div class='stock-closing-price col s6'>
-											<fmt:formatNumber value="${entry.key.previousClosingPrice}"
-												type="currency" />
+											<c:if test='${entry.key.currency ne "USD"}'>
+                        <span class='bold'>${entry.key.currency}${entry.key.foreignPreviousClosingPrice}</span> - 
+                        </c:if>
+											<span class='bold'><fmt:formatNumber value="${entry.key.previousClosingPrice}"
+												type="currency" /></span>
 										</div>
 									</div>
 									<div class='row'>
 										<div class='col s6 stock-info-header'>Price change</div>
 										<div
-											class='stock-price-change col s6 ${entry.key.change lt 0? 'red-text':'green-text' }'>${entry.key.change}</div>
+											class='stock-price-change col s6 ${entry.key.change lt 0? 'red-text bold':'green-text bold' }'>
+											<c:if test='${entry.key.currency ne "USD"}'>${entry.key.foreignChange}${entry.key.currency} &nbsp;&nbsp; </c:if>${entry.key.change}USD</div>
 									</div>
 									<div class='row'>
 										<div class='col s6 stock-info-header'>Percent change</div>
 										<div
-											class='stock-change-percent col s6 ${entry.key.change lt 0? 'red-text':'green-text' }'>${entry.key.changePercent}%</div>
+											class='stock-change-percent col s6 ${entry.key.change lt 0? 'red-text bold':'green-text bold' }'>${entry.key.changePercent}%</div>
 									</div>
 								</div>
 							</li>
@@ -412,38 +421,7 @@
 
 			$('#add-stock-submit').click(
 					function() {
-						$('#buy-share-input').val(
-								$('#buy-share-input').val().trim());
-						var number = $('#buy-share-input').val();
-						if (isNaN(number) || parseInt(Number(number)) != number
-								|| parseInt(Number(number)) < 0
-								|| parseInt(Number(number)) > 2000000
-								|| isNaN(parseInt(number, 10))) {
-							$('#buy-share-input').addClass('invalid');
-							$('#buy-share-label').attr('data-error',
-									"Invalid shares value");
-							return;
-						} else {
-							$.ajax({
-								url : "/webapps7/stock/buy",
-								data : $('#add-stock-form').serialize(),
-								async : false,
-								cache : false,
-								type : "POST",
-								success : function(response) {
-									if (response.status == 'failed') {
-										$('#buy-symbol-input').addClass(
-												'invalid');
-										$('#buy-symbol-label').attr(
-												'data-error',
-												response.errorMessage);
-										return;
-									} else {
-										location.reload();
-									}
-								}
-							});
-						}
+						buyStock();
 					});
 		});
 	</script>
