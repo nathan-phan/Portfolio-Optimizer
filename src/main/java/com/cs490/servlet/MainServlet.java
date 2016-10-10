@@ -513,13 +513,13 @@ public class MainServlet extends HttpServlet {
 			BigDecimal overseaPercent = overseaValue.divide(totalStockValue,4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
 			BigDecimal domesticPercent = new BigDecimal(100).subtract(overseaPercent);
 			BigDecimal cashPercent = portfolio.getBalance().divide(totalStockValue.add(portfolio.getBalance()),4, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
-			request.setAttribute("totalValue", totalStockValue);
 			request.setAttribute("overseaPercent", overseaPercent);
 			request.setAttribute("domesticPercent", domesticPercent);
 			request.setAttribute("cashPercent", cashPercent);
 			request.setAttribute("foreignValue", overseaValue);
 			request.setAttribute("size", stocks.size());
 		}
+		request.setAttribute("totalValue", totalStockValue);
 		request.setAttribute("size", stocks.size());
 		request.setAttribute("portfolio", portfolio);
 		ArrayList<RecordVO> records = PortfolioDAO.getPortfolioRecord(portfolioId);

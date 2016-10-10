@@ -169,6 +169,10 @@
 								class="waves-effect btn red modal-trigger right"> <span>Add
 									stock</span></a>
 						</div>
+						<div class="col s12">
+              <span class='bold'>Total Stocks Value: </span>: &nbsp;
+              <fmt:formatNumber value="${totalValue}" type="currency" />
+						</div>
 						<div class="col s12 violation-block display-none">
 							<span class='bold'>Violation</span>:
 							<ul class='bold'>
