@@ -106,7 +106,7 @@
 								</div>
 								<div class="collapsible-body">
 									<div class='row'>
-										<div class='col s6 stock-info-header'>Current price</div>
+										<div class='col s4 stock-info-header'>Current price</div>
 										<div class='stock-price col s6'>
 											<c:if test='${entry.key.currency ne "USD"}'>
                         <span class='bold'>${entry.key.currency}${entry.key.foreignPrice}</span> - 
@@ -118,7 +118,7 @@
 										</div>
 									</div>
 									<div class='row prev-closing-row'>
-										<div class='col s6 stock-info-header'>Previous closing
+										<div class='col s4 stock-info-header'>Previous closing
 											price</div>
 										<div class='stock-closing-price col s6'>
 											<c:if test='${entry.key.currency ne "USD"}'>
@@ -129,13 +129,13 @@
 										</div>
 									</div>
 									<div class='row'>
-										<div class='col s6 stock-info-header'>Price change</div>
+										<div class='col s4 stock-info-header'>Price change</div>
 										<div
 											class='stock-price-change col s6 ${entry.key.change lt 0? 'red-text bold':'green-text bold' }'>
 											<c:if test='${entry.key.currency ne "USD"}'>${entry.key.foreignChange}${entry.key.currency} &nbsp;&nbsp; </c:if>${entry.key.change}USD</div>
 									</div>
 									<div class='row'>
-										<div class='col s6 stock-info-header'>Percent change</div>
+										<div class='col s4 stock-info-header'>Percent change</div>
 										<div
 											class='stock-change-percent col s6 ${entry.key.change lt 0? 'red-text bold':'green-text bold' }'>${entry.key.changePercent}%</div>
 									</div>
