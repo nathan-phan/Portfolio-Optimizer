@@ -1,6 +1,10 @@
 package com.cs490.servlet;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URL;
@@ -134,7 +138,7 @@ public class MainServlet extends HttpServlet {
 				e.printStackTrace();
 			}
 		}
-		
+
 		if(request.getRequestURI().contains("/stock/checkprice")){
 			try {
 				checkStockPrice(request, response);
@@ -176,7 +180,7 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-		
+
 		if(request.getRequestURI().contains("/account/view")){
 			if(!checkLoggedIn(request, response)){
 				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
@@ -307,7 +311,7 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-		
+
 		if(request.getRequestURI().contains("/portfolio/update")){
 			if(!checkLoggedIn(request, response)){
 				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
@@ -320,7 +324,7 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-		
+
 		if(request.getRequestURI().contains("/account/update")){
 			if(!checkLoggedIn(request, response)){
 				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
@@ -333,8 +337,8 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
-		
-		
+
+
 	}
 
 	private void displayStockInfo(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
@@ -342,7 +346,26 @@ public class MainServlet extends HttpServlet {
 		if(request.getParameter("symbol") != null){
 			symbol = request.getParameter("symbol");
 		}
-		Stock stock = YahooFinance.get(symbol);
+		StockVO stock = new StockVO(symbol);
+		LinkedHashMap<String, Double> rates = PortfolioDAO.getExchangeRates();
+		if(stock.getCurrency().equals("INR")){
+			BigDecimal originalPrice = stock.getForeignPrice(); 
+			BigDecimal convertedPrice = originalPrice.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP);
+			stock.setPrice(convertedPrice);
+			BigDecimal prevClose = stock.getForeignPreviousClosingPrice();
+			BigDecimal foreignChange = stock.getForeignChange();
+			stock.setChange(foreignChange.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP));
+			stock.setPreviousClosingPrice(prevClose.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP));
+			stock.setPrice(convertedPrice);
+		} else if(stock.getCurrency().equals("SGD")){
+			BigDecimal originalPrice = stock.getForeignPrice(); 
+			BigDecimal convertedPrice = originalPrice.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP);
+			stock.setPrice(convertedPrice);
+			BigDecimal prevClose = stock.getForeignPreviousClosingPrice();
+			stock.setPreviousClosingPrice(prevClose.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP));
+			BigDecimal foreignChange = stock.getForeignChange();
+			stock.setChange(foreignChange.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP));
+		}
 		request.setAttribute("stock", stock);
 		response.setContentType("text/html");
 		request.getRequestDispatcher("/StockInfo.jsp").forward(request, response);
@@ -377,7 +400,7 @@ public class MainServlet extends HttpServlet {
 			response.getWriter().write(json.toString());
 			return;
 		}
-		
+
 		BasicTextEncryptor textEncryptor = new BasicTextEncryptor();
 		textEncryptor.setPassword("keyForPass"); 
 		String encryptedPassword = textEncryptor.encrypt(password);
@@ -682,7 +705,40 @@ public class MainServlet extends HttpServlet {
 	}
 
 	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
-		response.getWriter().print("<script>alert('hi')</script>");
+		response.setContentType("text/csv");
+		String disposition = "attachment; fileName=outputfile.csv";
+		response.setHeader("Content-Disposition", disposition);
+		OutputStream outputStream = response.getOutputStream();
+		StringBuilder sb = new StringBuilder();
+		sb.append("id");
+		sb.append(',');
+		sb.append("Name");
+		sb.append('\n');
+
+		sb.append("1");
+		sb.append(',');
+		sb.append("Prashant Ghimire");
+		sb.append('\n');
+		sb.append('\n');
+		sb.append('\n');
+		
+		sb.append("abc");
+		sb.append(',');
+		sb.append("def");
+		sb.append(',');
+		sb.append("ghk");
+		sb.append('\n');
+		
+		sb.append("Name3");
+		sb.append(',');
+		sb.append("Name1");
+		sb.append(',');
+		sb.append("Name2");
+		sb.append('\n');
+
+		outputStream.write(sb.toString().getBytes());
+		outputStream.flush();
+		outputStream.close();
 	}
 
 	private void buyStock(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
@@ -776,14 +832,14 @@ public class MainServlet extends HttpServlet {
 			response.getWriter().write(json.toString());
 			return;
 		}
-		
+
 		id = Integer.parseInt(request.getParameter("id"));
 		BigDecimal price;
 		price = PortfolioDAO.findCurrentStockPrice(symbol);
 		price = PortfolioDAO.liveCurrencyConvert(symbol, price);
 
 		BigDecimal totalPrice = price.multiply(new BigDecimal(shares));
-	
+
 		if(!PortfolioDAO.removeStocksFromPortfolio(id, symbol, shares)){
 			json.addProperty("status", "failed");
 			json.addProperty("errorMessage", "Failed to remove stocks from portfolio.");
@@ -806,7 +862,7 @@ public class MainServlet extends HttpServlet {
 		response.getWriter().write(json.toString());
 		return;
 	}
-	
+
 	private void updatePortfolioName(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
 		JsonObject json = new JsonObject();
 		response.setContentType("application/json");
@@ -816,20 +872,20 @@ public class MainServlet extends HttpServlet {
 			response.getWriter().write(json.toString());
 			return;
 		}
-		
+
 		int id = Integer.parseInt(request.getParameter("id"));
 		String name = request.getParameter("name");
-		
+
 		HttpSession session = request.getSession();
 		String user = (String)session.getAttribute("userName");
-		
+
 		if(PortfolioDAO.checkForEditDupe(id, name, user)){
 			json.addProperty("status", "failed");
 			json.addProperty("errorMessage", "Another portfolio with the same name already exists.");
 			response.getWriter().write(json.toString());
 			return;
 		}
-		
+
 		if(!PortfolioDAO.updatePortfolioName(id, name)){
 			json.addProperty("status", "failed");
 			json.addProperty("errorMessage", "Failed to update name.");
@@ -840,9 +896,9 @@ public class MainServlet extends HttpServlet {
 		json.addProperty("successMessage", "Portfolio Updated");
 		response.getWriter().write(json.toString());
 		return;
-		
+
 	}
-	
+
 	private void displayAccount(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
 		HttpSession session = request.getSession();
 		String userName = (String)session.getAttribute("userName");
@@ -850,7 +906,7 @@ public class MainServlet extends HttpServlet {
 		request.setAttribute("user", user);
 		request.getRequestDispatcher("/AccountInfo.jsp").forward(request, response);
 	}
-	
+
 	private void checkStockPrice(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
 		JsonObject json = new JsonObject();
 		response.setContentType("application/json");
@@ -868,7 +924,7 @@ public class MainServlet extends HttpServlet {
 		response.getWriter().write(json.toString());
 		return;
 	}
-	
+
 	private void updateAccInfo(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException, SQLException {
 		HttpSession session = request.getSession();
 		String userName = (String)session.getAttribute("userName");

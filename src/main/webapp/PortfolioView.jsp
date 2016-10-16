@@ -26,11 +26,12 @@
 							Gorilla</span> </a> <span class='page-description'> Dragging your
 						money through economy hardship </span>
 				</div>
-				<form>
+				<form id='stock-search-form'>
 					<div class="input-field">
-						<input id="viewer-search-input" class="blue darken-1 lighten-1"
-							type="search" placeholder="Search stock" required> <label
-							for="search"><i class="material-icons prefix">search</i></label>
+						<input id="viewer-search-input" name='symbol'
+							class="blue darken-1 lighten-1" type="search"
+							placeholder="Search stock" required> <label for="search"><i
+							class="material-icons prefix">search</i></label>
 					</div>
 				</form>
 				<ul class="right user-options-block">
@@ -489,6 +490,13 @@
 		</div>
 	</div>
 
+	<div id="stock-preview-modal" class="modal">
+		<div class="modal-content"></div>
+		<div class="modal-footer">
+			<a class="modal-action modal-close btn-flat">Close</a>
+		</div>
+	</div>
+
 	<script>
 		$(function() {
 			$('.modal-trigger').leanModal({
@@ -544,6 +552,11 @@
 				$('#confirm-sell-shares').text($('#sell-share-input').val());
 				sellStock('${usdinr}', '${usdsgd}');
 			})
+			
+			$('#stock-search-form').submit(function(e){
+				e.preventDefault();
+				previewStockInfo();
+			});
 		});
 	</script>
 </body>

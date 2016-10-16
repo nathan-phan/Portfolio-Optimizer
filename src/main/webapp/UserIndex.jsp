@@ -24,13 +24,6 @@
 						class='page-description'> Dragging your money through
 						economy hardship </span>
 				</div>
-				<form>
-					<div class="input-field">
-						<input id="viewer-search-input" class="blue darken-1 lighten-1"
-							type="search" placeholder="Search stock" required> <label
-							for="search"><i class="material-icons prefix">search</i></label>
-					</div>
-				</form>
 				<ul class="right user-options-block">
 					<li><a class="dropdown-button" href="#!"
 						data-activates="user-dropdown"><i class="material-icons left"

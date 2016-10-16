@@ -116,14 +116,16 @@ function buyStock(rate1, rate2){
 				} else {
 					var price = response.price;
 					if($('#buy-symbol-input').val().toUpperCase().indexOf('NSE') >= 0){
-						var converted = (Number($('#buy-share-input').val())*price/Number(rate1)).toFixed(2);;
+						var converted = (Number($('#buy-share-input').val())*price/Number(rate1)).toFixed(2);
 						$('#confirm-buy-cost').text(converted)
 					}
 					else if($('#buy-symbol-input').val().toUpperCase().indexOf('.SI') >= 0){
-						var converted = (Number($('#buy-share-input').val())*price/Number(rate2)).toFixed(2);;
+						var converted = (Number($('#buy-share-input').val())*price/Number(rate2)).toFixed(2);
 						$('#confirm-buy-cost').text(converted)
 					} else {
-						$('#confirm-buy-cost').text((Number($('#buy-share-input').val())*price).toFixed(2));
+						var shares = Number($('#buy-share-input').val());
+						var total = shares*price;
+						$('#confirm-buy-cost').text(total.toFixed(2));
 					}
 				}
 			}
@@ -194,7 +196,7 @@ function sellStock(rate1, rate2){
 					else {
 						$('#confirm-sell-cost').text((Number($('#sell-share-input').val())*price).toFixed(2));
 					}
-					
+
 				}
 			}
 		})
@@ -278,6 +280,18 @@ function editPortfolioName(id, name){
 				$('.portfolio-entry[data-id=' + id +'] .port-title').text(name);
 				$('#edit-port-modal').closeModal();
 			}
+		}
+	})
+}
+
+function previewStockInfo(){
+	$.ajax({
+		url : "/webapps7/stock/view?symbol=" + $('#viewer-search-input').val().trim(),
+		type:"GET",
+		cache: false,
+		success: function(response) {
+			$('#stock-preview-modal .modal-content').html(response);
+			$('#stock-preview-modal').openModal();
 		}
 	})
 }
