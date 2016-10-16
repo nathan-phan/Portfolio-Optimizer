@@ -233,6 +233,38 @@ public class UserDAO {
 		return true;
 	}
 	
+	public static UserVO findUserAccInfo(String userName) throws SQLException {
+		UserVO user = new UserVO();
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT user_id, email, password FROM users WHERE user_id = ?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setString(1, userName);
+			ResultSet rs = prepStmt.executeQuery();
+			if(rs.next()){
+				user.setUserName(rs.getString(1));
+				user.setEmail(rs.getString(2));
+				user.setEncryptedPassword(rs.getString(3));
+				BasicTextEncryptor textEncryptor = new BasicTextEncryptor();
+				textEncryptor.setPassword("keyForPass"); 
+				user.setPlainPassword(textEncryptor.decrypt(rs.getString(3)));
+			}
+		} catch(Exception e){
+			e.printStackTrace();
+			return null;
+		} finally {
+			connection.close();
+		}
+		return user;
+	}
+	
 	public static ArrayList<PortfolioVO> findUserPorfolio (String userName) throws SQLException {
 		Connection connection = null;
 		try {
@@ -265,5 +297,33 @@ public class UserDAO {
 			connection.close();
 		}
 		return portfolios;
+	}
+	
+	public static boolean updateAccInfo(String user, String email, String plainPw) throws SQLException {
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			BasicTextEncryptor textEncryptor = new BasicTextEncryptor();
+			textEncryptor.setPassword("keyForPass"); 
+			String encryptedPw = textEncryptor.encrypt(plainPw);
+			String query = "UPDATE users SET password=?, email=? WHERE user_id=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setString(1, encryptedPw);
+			prepStmt.setString(2, email);
+			prepStmt.setString(3, user);
+			prepStmt.executeUpdate();
+			return true;
+		} catch(Exception e){
+			e.printStackTrace();
+			return false;
+		} finally {
+			connection.close();
+		}
 	}
 }

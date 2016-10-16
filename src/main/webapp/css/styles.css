@@ -373,6 +373,14 @@ label[data-error]:after {
 	padding: 10px;
 }
 
+.account-card {
+	position: absolute !important;
+	width: 700px;
+	left: 0px;
+	right: 0px;
+	margin: 100px auto;
+}
+
 @media only screen and (max-width: 1400px) {
 	.login-card {
 		margin-top: 5%;

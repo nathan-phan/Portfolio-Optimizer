@@ -41,7 +41,7 @@
 							class="material-icons right" id='dropdown-arrow'>arrow_drop_down</i></a></li>
 				</ul>
 				<ul id="user-dropdown" class="dropdown-content">
-					<li><a href="#!">Edit profile</a></li>
+					<li><a href="/webapps7/account/view">Edit profile</a></li>
 					<li class="divider"></li>
 					<li><a href="/webapps7/logout">Logout</a></li>
 				</ul>
@@ -145,6 +145,15 @@
 											class='stock-change-percent col s8 ${entry.key.change lt 0? "
 											red-text bold":"green-text bold" }'>${entry.key.changePercent}%</div>
 									</div>
+
+									<div class='row'>
+										<div class='col s4 stock-info-header'>Total current
+											market value</div>
+										<div class='col s8 bold'>
+											<fmt:formatNumber value="${entry.key.price * entry.value }"
+												type="currency" />
+										</div>
+									</div>
 								</div>
 							</li>
 						</c:forEach>
@@ -170,8 +179,16 @@
 									stock</span></a>
 						</div>
 						<div class="col s12">
-              <span class='bold'>Total Stocks Value: </span>: &nbsp;
-              <fmt:formatNumber value="${totalValue}" type="currency" />
+							<span class='bold'>Oversea Stock Value: </span>: &nbsp;
+							<fmt:formatNumber value="${overseaValue}" type="currency" />
+						</div>
+						<div class="col s12">
+							<span class='bold'>Domestic Stocks Value: </span>: &nbsp;
+							<fmt:formatNumber value="${domesticValue}" type="currency" />
+						</div>
+						<div class="col s12">
+							<span class='bold'>Total Stocks Value: </span>: &nbsp;
+							<fmt:formatNumber value="${totalValue}" type="currency" />
 						</div>
 						<div class="col s12 violation-block display-none">
 							<span class='bold'>Violation</span>:
@@ -407,10 +424,9 @@
 									id='sell-share-label' for="sell-share-input" data-error="">Shares</label>
 							</div>
 						</div>
-						<input type='hidden' name='id' value='${param.id}'>
-						<input type='hidden' name='available' id="available-share" value=''> 
-						 <input
-							type='hidden' name='symbol' id="sell-symbol-input" value=''>
+						<input type='hidden' name='id' value='${param.id}'> <input
+							type='hidden' name='available' id="available-share" value=''>
+						<input type='hidden' name='symbol' id="sell-symbol-input" value=''>
 					</form>
 				</div>
 			</div>
@@ -421,25 +437,79 @@
 		</div>
 	</div>
 
+	<div id="buy-stock-confirm-modal" class="modal">
+		<div class="modal-content">
+			<div class="row">
+				<div class="col s12">
+					<h5>Buy Stock Confirmation</h5>
+				</div>
+			</div>
+			<div class="row ">
+				<div class="col s12">
+					<div class="row">
+						<div class="col s12">
+							Are you willing to buy <span id='confirm-buy-shares'></span>
+							shares of <span id='confirm-buy-symbol'></span> for $<span
+								id='confirm-buy-cost'></span>?
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<a id='buy-stock-confirm-submit'
+				class="modal-action modal-close btn-flat">Confirm</a> <a
+				class="modal-action modal-close btn-flat">Cancel</a>
+		</div>
+	</div>
+
+	<div id="sell-stock-confirm-modal" class="modal">
+		<div class="modal-content">
+			<div class="row">
+				<div class="col s12">
+					<h5>Sell Stock Confirmation</h5>
+				</div>
+			</div>
+			<div class="row ">
+				<div class="col s12">
+					<div class="row">
+						<div class="col s12">
+							Are you willing to sell <span id='confirm-sell-shares'></span>
+							shares of <span id='confirm-sell-symbol'></span> for $<span
+								id='confirm-sell-cost'></span>?
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<a id='sell-stock-confirm-submit'
+				class="modal-action modal-close btn-flat">Confirm</a> <a
+				class="modal-action modal-close btn-flat">Cancel</a>
+		</div>
+	</div>
+
 	<script>
 		$(function() {
 			$('.modal-trigger').leanModal({
 				dismissible : false
 			});
-			if ('${size}' != '0') {
-				if (Number('${size}') < 7 || Number('${size}') > 10) {
-					$('.violation-block').removeClass('display-none');
-					$('#violation-1').removeClass('display-none');
-				}
-				if (Number('${domesticPercent}') != 70) {
-					$('.violation-block').removeClass('display-none');
-					$('#violation-2').removeClass('display-none');
-				}
-				if (Number('${cashPercent}') > 10) {
-					$('.violation-block').removeClass('display-none');
-					$('#violation-3').removeClass('display-none');
-				}
+
+			if (Number('${size}') < 7 || Number('${size}') > 10) {
+				$('.violation-block').removeClass('display-none');
+				$('#violation-1').removeClass('display-none');
 			}
+
+			if (Number('${cashPercent}') > 10) {
+				$('.violation-block').removeClass('display-none');
+				$('#violation-3').removeClass('display-none');
+			}
+
+			if ('${size}' != '0' && Number('${domesticPercent}') != 70) {
+				$('.violation-block').removeClass('display-none');
+				$('#violation-2').removeClass('display-none');
+			}
+
 			$('.sell-button').click(function() {
 				$('#sell-symbol-input').val($(this).attr('data-symbol'));
 				$('#available-share').val($(this).attr('data-shares'));
@@ -452,15 +522,27 @@
 
 			$('#withdraw-submit').click(function() {
 				var id = '${param.id}';
-				withdrawSubmit(id);
+				withdrawSubmit(id, '${portfolio.balance}');
 			});
 
 			$('#add-stock-submit').click(function() {
-				buyStock();
+				$('#confirm-buy-symbol').text($('#buy-symbol-input').val());
+				$('#confirm-buy-shares').text($('#buy-share-input').val());
+				buyStock('${usdinr}', '${usdsgd}');
 			});
 
+			$('#buy-stock-confirm-submit').click(function() {
+				confirmBuyStock();
+			})
+			
+			$('#sell-stock-confirm-submit').click(function() {
+        confirmSellStock();
+      })
+
 			$('#sell-stock-submit').click(function() {
-				sellStock();
+				$('#confirm-sell-symbol').text($('#sell-symbol-input').val());
+				$('#confirm-sell-shares').text($('#sell-share-input').val());
+				sellStock('${usdinr}', '${usdsgd}');
 			})
 		});
 	</script>

@@ -39,7 +39,7 @@
 							class="material-icons right" id='dropdown-arrow'>arrow_drop_down</i></a></li>
 				</ul>
 				<ul id="user-dropdown" class="dropdown-content">
-					<li><a href="#!">Edit profile</a></li>
+					<li><a href="/webapps7/account/view">Edit profile</a></li>
 					<li class="divider"></li>
 					<li><a href="/webapps7/logout">Logout</a></li>
 				</ul>
@@ -60,7 +60,8 @@
 		<c:choose>
 			<c:when test="${empty ports }">
 				<div class='card user-portfolio-card'>
-					<div class='card-content center'>User has no portfolio right now.</div>
+					<div class='card-content center'>User has no portfolio right
+						now.</div>
 				</div>
 			</c:when>
 			<c:otherwise>
@@ -72,9 +73,13 @@
 									<c:out value="${port.name }" />
 								</div>
 								<div class='col s3'>
-									<a href="#delete-modal" class="port-entry-icons modal-trigger delete-button" data-name='${port.name}' data-id="${port.id}"><i
-										class="material-icons">delete</i></a> <a href="#edit-modal" data-id="${port.id}" 
-										class="port-entry-icons modal-trigger edit-button"><i class="material-icons">edit</i></a>
+									<a href="#delete-modal"
+										class="port-entry-icons modal-trigger delete-button"
+										data-name='${port.name}' data-id="${port.id}"><i
+										class="material-icons">delete</i></a> <a href="#edit-port-modal"
+										data-id="${port.id}" data-name='${port.name}'
+										class="port-entry-icons modal-trigger edit-button"><i
+										class="material-icons">edit</i></a>
 								</div>
 							</div>
 							<div class='row'>
@@ -100,7 +105,6 @@
 							</div>
 					</c:forEach>
 				</ul>
-
 			</c:otherwise>
 		</c:choose>
 
@@ -139,25 +143,57 @@
 	</div>
 
 	<!-- END OF ADD PORTFOLIO MODAL -->
-	
+
 	<div id="delete-modal" class="modal">
-    <div class="modal-content">
-      <div class="row">
-        <div class="col s12">
-          <h5>Delete Portfolio</h5>
-        </div>
-      </div>
-      <div class="row ">
-        <div class="col s12">
-          Are you sure you want to delete <span id='deleted-port-name'></span> ?
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <a id='delete-submit' data-id="" class="modal-action modal-close btn-flat">Delete</a> <a
-        class="modal-action modal-close btn-flat">Cancel</a>
-    </div>
-  </div>
+		<div class="modal-content">
+			<div class="row">
+				<div class="col s12">
+					<h5>Delete Portfolio</h5>
+				</div>
+			</div>
+			<div class="row ">
+				<div class="col s12">
+					Are you sure you want to delete <span id='deleted-port-name'></span>
+					?
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<a id='delete-submit' data-id=""
+				class="modal-action modal-close btn-flat">Delete</a> <a
+				class="modal-action modal-close btn-flat">Cancel</a>
+		</div>
+	</div>
+
+	<div id="edit-port-modal" class="modal">
+		<div class="modal-content">
+			<div class="row">
+				<div class="col s12">
+					<h5>Edit Portfolio</h5>
+				</div>
+			</div>
+			<div class="row ">
+				<div class="col s12">
+					<form id='edit-port-form' onSubmit="return false;">
+						<div class="row">
+							<div class="input-field col s12">
+								<input type='hidden' name='id' value='' id='edit-port-id'>
+								<input id="edit-port-name-input" length=255 maxlength=255
+									name="portfolioName" type="text" class="required-input"
+									placeholder=""> <label id='edit-port-name-label'
+									for="edit-port-name-input" data-error="">Portfolio Name</label>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<a id='edit-submit' class="modal-action btn-flat">Update</a> <a
+				class="modal-action modal-close btn-flat">Cancel</a>
+		</div>
+	</div>
+
 	<script>
 		$('.modal-trigger').leanModal({
 			dismissible : false
@@ -169,17 +205,33 @@
 							$('#add-port-name-input').val().trim());
 					addNewPortfolio();
 				})
-		$('.port-title, .port-stock').click(function(){
+		$('.port-title, .port-stock').click(function() {
 			var id = $(this).attr('data-id');
 			location.href = '/webapps7/portfolio/view?id=' + id;
 		})
-		
-		$('.delete-button').click(function(){
+
+		$('.delete-button').click(function() {
 			$('#deleted-port-name').html($(this).attr('data-name'));
 			$('#delete-submit').attr('data-id', $(this).attr('data-id'));
 		})
 		
-		$('#delete-submit').click(function(){
+		$('.edit-button').click(function() {
+			$('#edit-port-id').val($(this).attr('data-id'));
+			$('#edit-port-name-input').val($(this).attr('data-name'));
+		})
+		
+		$('#edit-submit').click(function(){
+			var id = $('#edit-port-id').val();
+			var name = $('#edit-port-name-input').val().trim();
+			if(id == '' || name == "") {
+				$('#edit-port-name-input').addClass('invalid');
+			  $('#edit-port-name-label').attr('data-error','Invalid parameter');
+			  return;
+			}
+			editPortfolioName(id,name);
+		})
+
+		$('#delete-submit').click(function() {
 			deletePortfolio($(this).attr('data-id'));
 		})
 	</script>

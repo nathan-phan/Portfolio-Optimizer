@@ -11,7 +11,11 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>MainServlet</servlet-name>
-		<url-pattern>/webapps7/stock</url-pattern>
+		<url-pattern>/webapps7/stock/view</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/stock/checkprice</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>MainServlet</servlet-name>
@@ -30,47 +34,60 @@
 		<url-pattern>/webapps7/forgotpass</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-    <servlet-name>MainServlet</servlet-name>
-    <url-pattern>/webapps7/index</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>MainServlet</servlet-name>
-    <url-pattern>/webapps7/portfolio/add</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>MainServlet</servlet-name>
-    <url-pattern>/webapps7/portfolio/view</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>MainServlet</servlet-name>
-    <url-pattern>/webapps7/logout</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>MainServlet</servlet-name>
-    <url-pattern>/webapps7/stock/buy</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>MainServlet</servlet-name>
-    <url-pattern>/webapps7/stock/sell</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>MainServlet</servlet-name>
-    <url-pattern>/webapps7/withdraw</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>MainServlet</servlet-name>
-    <url-pattern>/webapps7/deposit</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>MainServlet</servlet-name>
-    <url-pattern>/webapps7/portfolio/delete</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>MainServlet</servlet-name>
-    <url-pattern>/webapps7/portfolio/history</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>MainServlet</servlet-name>
-    <url-pattern>/webapps7/sheet/test</url-pattern>
-  </servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/index</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/portfolio/add</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/portfolio/view</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/logout</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/stock/buy</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/stock/sell</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/withdraw</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/deposit</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/portfolio/delete</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/portfolio/history</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/sheet/test</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/portfolio/update</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/account/view</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>MainServlet</servlet-name>
+		<url-pattern>/webapps7/account/update</url-pattern>
+	</servlet-mapping>
+
 </web-app>

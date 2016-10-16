@@ -5,11 +5,15 @@ import java.util.ArrayList;
 public class UserVO {
 	private String userName;
 	private String email;
+	private String encryptedPassword;
+	private String plainPassword;
 	private ArrayList<PortfolioVO> userPortfolios;
 	
 	public UserVO() {
 		userName = "";
 		email = "";
+		encryptedPassword = "";
+		plainPassword = "";
 		userPortfolios = new ArrayList<PortfolioVO>();
 	}
 	
@@ -35,6 +39,22 @@ public class UserVO {
 
 	public void setUserPortfolios(ArrayList<PortfolioVO> userPortfolios) {
 		this.userPortfolios = userPortfolios;
+	}
+
+	public String getEncryptedPassword() {
+		return encryptedPassword;
+	}
+
+	public void setEncryptedPassword(String encryptedPassword) {
+		this.encryptedPassword = encryptedPassword;
+	}
+
+	public String getPlainPassword() {
+		return plainPassword;
+	}
+
+	public void setPlainPassword(String plainPassword) {
+		this.plainPassword = plainPassword;
 	}
 	
 }

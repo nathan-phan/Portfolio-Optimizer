@@ -27,6 +27,7 @@ import com.cs490.dao.UserDAO;
 import com.cs490.vo.PortfolioVO;
 import com.cs490.vo.RecordVO;
 import com.cs490.vo.StockVO;
+import com.cs490.vo.UserVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -34,12 +35,14 @@ import yahoofinance.Stock;
 import yahoofinance.YahooFinance;
 
 @WebServlet(name="MainServlet", displayName="MainServlet", urlPatterns= {
-		"/webapps7/stock", "/webapps7/login", "/webapps7/register", "/webapps7/forgotpass",
+		"/webapps7/stock/view", "/webapps7/login", "/webapps7/register", "/webapps7/forgotpass",
 		"/webapps7/authenticate", "/webapps7/index", "/webapps7/portfolio/add",
 		"/webapps7/portfolio/view", "/webapps7/logout",
 		"/webapps7/stock/buy", "/webapps7/stock/sell",
 		"/webapps7/withdraw","/webapps7/deposit",
-		"/webapps7/portfolio/delete", "/webapps7/portfolio/history","webapps7/sheet/test"
+		"/webapps7/portfolio/delete", "/webapps7/portfolio/history",
+		"/webapps7/sheet/test", "/webapps7/portfolio/update","/webapps7/account/view",
+		"/webapps7/account/update", "/webapps7/stock/checkprice"
 })
 public class MainServlet extends HttpServlet {
 	public static final long serialVersionUID = 389807010932642772L;
@@ -131,8 +134,16 @@ public class MainServlet extends HttpServlet {
 				e.printStackTrace();
 			}
 		}
+		
+		if(request.getRequestURI().contains("/stock/checkprice")){
+			try {
+				checkStockPrice(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 
-		if(request.getRequestURI().contains("/stock")){
+		if(request.getRequestURI().contains("/stock/view")){
 			if(!checkLoggedIn(request, response)){
 				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
 				return;
@@ -165,6 +176,19 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
+		
+		if(request.getRequestURI().contains("/account/view")){
+			if(!checkLoggedIn(request, response)){
+				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+				return;
+			}
+			try {
+				displayAccount(request, response);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return;
+		}
 
 		if(request.getRequestURI().contains("/portfolio/history")){
 			if(!checkLoggedIn(request, response)){
@@ -180,10 +204,6 @@ public class MainServlet extends HttpServlet {
 		}
 
 		if(request.getRequestURI().contains("/sheet/test")){
-			if(!checkLoggedIn(request, response)){
-				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
-				return;
-			}
 			try {
 				doSheetTest(request, response);
 			} catch (SQLException e) {
@@ -287,6 +307,34 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
+		
+		if(request.getRequestURI().contains("/portfolio/update")){
+			if(!checkLoggedIn(request, response)){
+				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+				return;
+			}
+			try {
+				updatePortfolioName(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		
+		if(request.getRequestURI().contains("/account/update")){
+			if(!checkLoggedIn(request, response)){
+				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+				return;
+			}
+			try {
+				updateAccInfo(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+		
+		
 	}
 
 	private void displayStockInfo(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
@@ -329,10 +377,12 @@ public class MainServlet extends HttpServlet {
 			response.getWriter().write(json.toString());
 			return;
 		}
+		
 		BasicTextEncryptor textEncryptor = new BasicTextEncryptor();
 		textEncryptor.setPassword("keyForPass"); 
 		String encryptedPassword = textEncryptor.encrypt(password);
 		if(!UserDAO.registerUser(userName, email, encryptedPassword)){
+			System.out.println(userName + " " + email + " "+ encryptedPassword);
 			json.addProperty("status", "failed");
 			json.addProperty("errorMessage", "Failed to add user into database");
 			response.getWriter().write(json.toString());
@@ -468,16 +518,15 @@ public class MainServlet extends HttpServlet {
 			portfolioId = Integer.parseInt(request.getParameter("id"));
 		}
 		LinkedHashMap<String, Double> rates = PortfolioDAO.getExchangeRates();
-		String[] straitArray = STRAIT_STOCKS.split(",");
+		request.setAttribute("usdinr", rates.get("USDINR"));
+		request.setAttribute("usdsgd", rates.get("USDSGD"));
 		String[] adrArray = ADR_STOCKS.split(",");
-		String[] niftyArray = NIFTY_STOCKS.split(",");
-		String[] domesticArray = DOMESTIC_STOCKS.split(",");
-		String[] overseaArray = OVERSEA_STOCKS.split(",");
 		request.setAttribute("overseas", OVERSEA_STOCKS);
 		PortfolioVO portfolio = PortfolioDAO.getPortfolioById(portfolioId);
 		LinkedHashMap<StockVO, Integer> stocks = portfolio.getStocks();
 		BigDecimal totalStockValue = new BigDecimal(0);
 		BigDecimal overseaValue = new BigDecimal(0);
+		BigDecimal domesticValue = new BigDecimal(0);
 		for(StockVO stock : stocks.keySet()) {
 			int shares = stocks.get(stock);
 			if(stock.getCurrency().equals("INR")){
@@ -505,6 +554,7 @@ public class MainServlet extends HttpServlet {
 				totalStockValue = totalStockValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
 				overseaValue = overseaValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
 			} else {
+				domesticValue = domesticValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
 				totalStockValue = totalStockValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
 			}
 		}
@@ -519,6 +569,8 @@ public class MainServlet extends HttpServlet {
 			request.setAttribute("foreignValue", overseaValue);
 			request.setAttribute("size", stocks.size());
 		}
+		request.setAttribute("overseaValue", overseaValue);
+		request.setAttribute("domesticValue", domesticValue);
 		request.setAttribute("totalValue", totalStockValue);
 		request.setAttribute("size", stocks.size());
 		request.setAttribute("portfolio", portfolio);
@@ -630,6 +682,7 @@ public class MainServlet extends HttpServlet {
 	}
 
 	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
+		response.getWriter().print("<script>alert('hi')</script>");
 	}
 
 	private void buyStock(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
@@ -730,13 +783,7 @@ public class MainServlet extends HttpServlet {
 		price = PortfolioDAO.liveCurrencyConvert(symbol, price);
 
 		BigDecimal totalPrice = price.multiply(new BigDecimal(shares));
-		BigDecimal balance =  PortfolioDAO.findPortfolioBalance(id);
-		if(totalPrice.compareTo(balance) == 1){
-			json.addProperty("status", "failed");
-			json.addProperty("errorMessage", "Total price exceeds balance.");
-			response.getWriter().write(json.toString());
-			return;
-		}
+	
 		if(!PortfolioDAO.removeStocksFromPortfolio(id, symbol, shares)){
 			json.addProperty("status", "failed");
 			json.addProperty("errorMessage", "Failed to remove stocks from portfolio.");
@@ -758,6 +805,84 @@ public class MainServlet extends HttpServlet {
 		json.addProperty("status", "success");
 		response.getWriter().write(json.toString());
 		return;
+	}
+	
+	private void updatePortfolioName(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
+		JsonObject json = new JsonObject();
+		response.setContentType("application/json");
+		if(request.getParameter("id") == null || request.getParameter("name") == null){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Invalid parameter.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		
+		int id = Integer.parseInt(request.getParameter("id"));
+		String name = request.getParameter("name");
+		
+		HttpSession session = request.getSession();
+		String user = (String)session.getAttribute("userName");
+		
+		if(PortfolioDAO.checkForEditDupe(id, name, user)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Another portfolio with the same name already exists.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		
+		if(!PortfolioDAO.updatePortfolioName(id, name)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Failed to update name.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		json.addProperty("status", "success");
+		json.addProperty("successMessage", "Portfolio Updated");
+		response.getWriter().write(json.toString());
+		return;
+		
+	}
+	
+	private void displayAccount(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
+		HttpSession session = request.getSession();
+		String userName = (String)session.getAttribute("userName");
+		UserVO user = UserDAO.findUserAccInfo(userName);
+		request.setAttribute("user", user);
+		request.getRequestDispatcher("/AccountInfo.jsp").forward(request, response);
+	}
+	
+	private void checkStockPrice(HttpServletRequest request, HttpServletResponse response) throws SQLException, ServletException, IOException {
+		JsonObject json = new JsonObject();
+		response.setContentType("application/json");
+		if(request.getParameter("symbol") == null ) {
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Invalid stock symbol.");
+			response.getWriter().write(json.toString());
+			return;
+		}
+		String symbol = request.getParameter("symbol");
+		StockVO stock = new StockVO(symbol);
+		BigDecimal price = stock.getPrice();
+		json.addProperty("status", "success");
+		json.addProperty("price", price);
+		response.getWriter().write(json.toString());
+		return;
+	}
+	
+	private void updateAccInfo(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException, SQLException {
+		HttpSession session = request.getSession();
+		String userName = (String)session.getAttribute("userName");
+		if(request.getParameter("email") == null || request.getParameter("password") == null) {
+			response.getWriter().print("<script>alert('Invalid parameter');</script>");
+			return;
+		}
+		String newEmail = request.getParameter("email");
+		String plainPw = request.getParameter("password");
+		if(!UserDAO.updateAccInfo(userName, newEmail, plainPw)) {
+			response.getWriter().print("<script>alert('Failed to update user info');history.back();</script>");
+			return;
+		}
+		displayMainScreen(request, response);
 	}
 
 	private void logOut(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{

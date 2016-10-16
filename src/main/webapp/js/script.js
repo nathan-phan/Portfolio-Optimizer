@@ -87,7 +87,7 @@ function deletePortfolio(id) {
 	})
 }
 
-function buyStock(){
+function buyStock(rate1, rate2){
 	$('#buy-share-input').val(
 			$('#buy-share-input').val().trim());
 	$('#buy-symbol-input').val(
@@ -102,29 +102,55 @@ function buyStock(){
 		"Invalid shares value");
 		return;
 	} else {
+		$('#add-stock-modal').closeModal();
 		$.ajax({
-			url : "/webapps7/stock/buy",
-			data : $('#add-stock-form').serialize(),
-			async : false,
-			cache : false,
-			type : "POST",
-			success : function(response) {
-				if (response.status == 'failed') {
-					$('#buy-symbol-input').addClass(
-					'invalid');
-					$('#buy-symbol-label').attr(
-							'data-error',
-							response.errorMessage);
+			url:"/webapps7/stock/checkprice?" + $.param({
+				symbol: $('#buy-symbol-input').val()
+			}),
+			cache: false,
+			type: "GET",
+			success: function(response){
+				if(response.status=='failed'){
+					alert(response.errorMessage); 
 					return;
 				} else {
-					location.reload();
+					var price = response.price;
+					if($('#buy-symbol-input').val().toUpperCase().indexOf('NSE') >= 0){
+						var converted = (Number($('#buy-share-input').val())*price/Number(rate1)).toFixed(2);;
+						$('#confirm-buy-cost').text(converted)
+					}
+					else if($('#buy-symbol-input').val().toUpperCase().indexOf('.SI') >= 0){
+						var converted = (Number($('#buy-share-input').val())*price/Number(rate2)).toFixed(2);;
+						$('#confirm-buy-cost').text(converted)
+					} else {
+						$('#confirm-buy-cost').text((Number($('#buy-share-input').val())*price).toFixed(2));
+					}
 				}
 			}
-		});
+		})
+		$('#buy-stock-confirm-modal').openModal();
 	}
 }
 
-function sellStock(){
+function confirmBuyStock(){
+	$.ajax({
+		url : "/webapps7/stock/buy",
+		data : $('#add-stock-form').serialize(),
+		async : false,
+		cache : false,
+		type : "POST",
+		success : function(response) {
+			if (response.status == 'failed') {
+				alert(response.errorMessage);
+				return;
+			} else {
+				location.reload();
+			}
+		}
+	});
+}
+
+function sellStock(rate1, rate2){
 	$('#sell-share-input').val(
 			$('#sell-share-input').val().trim());
 	var number = $('#sell-share-input').val();
@@ -144,29 +170,57 @@ function sellStock(){
 		return;
 	}
 	else {
+		$('#sell-stock-modal').closeModal();
 		$.ajax({
-			url : "/webapps7/stock/sell",
-			data : $('#sell-stock-form').serialize(),
-			async : false,
-			cache : false,
-			type : "POST",
-			success : function(response) {
-				if (response.status == 'failed') {
-					$('#sell-share-input').addClass(
-					'invalid');
-					$('#sell-share-label').attr(
-							'data-error',
-							response.errorMessage);
+			url:"/webapps7/stock/checkprice?" + $.param({
+				symbol: $('#sell-symbol-input').val()
+			}),
+			cache: false,
+			type: "GET",
+			success: function(response){
+				if(response.status=='failed'){
+					alert(response.errorMessage); 
 					return;
 				} else {
-					location.reload();
+					var price = response.price;
+					if($('#sell-symbol-input').val().toUpperCase().indexOf('NSE') >= 0){
+						var converted = (Number($('#sell-share-input').val())*price/Number(rate1)).toFixed(2);
+						$('#confirm-sell-cost').text(converted)
+					}
+					else if($('#sell-symbol-input').val().toUpperCase().indexOf('.SI') >= 0){
+						var converted = (Number($('#sell-share-input').val())*price/Number(rate2)).toFixed(2);
+						$('#confirm-sell-cost').text(converted)
+					}
+					else {
+						$('#confirm-sell-cost').text((Number($('#sell-share-input').val())*price).toFixed(2));
+					}
+					
 				}
 			}
-		});
+		})
+		$('#sell-stock-confirm-modal').openModal();
 	}
 }
 
-function withdrawSubmit(id){
+function confirmSellStock(){
+	$.ajax({
+		url : "/webapps7/stock/sell",
+		data : $('#sell-stock-form').serialize(),
+		async : false,
+		cache : false,
+		type : "POST",
+		success : function(response) {
+			if (response.status == 'failed') {
+				alert(response.errorMessage);
+				return;
+			} else {
+				location.reload();
+			}
+		}
+	});
+}
+
+function withdrawSubmit(id,balance){
 	$('#withdraw-input').val(
 			$('#withdraw-input').val().trim());
 	var amount = $('#withdraw-input').val();
@@ -178,7 +232,7 @@ function withdrawSubmit(id){
 		return;
 	}
 	var amountFloat = parseFloat(amount);
-	var balanceFloat = parseFloat('${portfolio.balance}');
+	var balanceFloat = parseFloat(balance);
 	if (amountFloat > balanceFloat) {
 		$('#withdraw-input').addClass('invalid');
 		$('#withdraw-label').attr('data-error',
@@ -204,4 +258,26 @@ function depositSubmit(id){
 		depositMoney(amount, id);
 		$('#deposit-modal').closeModal();
 	}
+}
+
+function editPortfolioName(id, name){
+	$.ajax({
+		url: "/webapps7/portfolio/update?" + $.param({
+			id: id,
+			name: name
+		}),
+		cache: false,
+		type:"POST",
+		dataType: 'json',
+		success: function(response){
+			if(response.status == 'failed') {
+				$('#edit-port-name-input').addClass('invalid');
+				$('#edit-port-name-label').attr('data-error',response.errorMessage);
+				return;
+			} else {
+				$('.portfolio-entry[data-id=' + id +'] .port-title').text(name);
+				$('#edit-port-modal').closeModal();
+			}
+		}
+	})
 }

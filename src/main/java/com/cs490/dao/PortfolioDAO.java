@@ -101,7 +101,7 @@ public class PortfolioDAO {
 		}
 		PreparedStatement prepStmt = null;
 		try {
-			String query = "SELECT stock_symbol, shares FROM portfolio_stocks WHERE portfolio_id=?";
+			String query = "SELECT stock_symbol, shares FROM portfolio_stocks WHERE portfolio_id=? and shares <> 0";
 			prepStmt = connection.prepareStatement(query);
 			prepStmt.setInt(1, portId);
 			ResultSet rs = prepStmt.executeQuery();
@@ -678,6 +678,59 @@ public class PortfolioDAO {
 		} catch(Exception e){
 			e.printStackTrace();
 			return result;
+		} finally {
+			connection.close();
+		}
+	}
+	public static boolean checkForEditDupe(int id, String name, String user) throws SQLException{
+		Connection connection = null;
+		boolean result = false;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT 1 FROM portfolios WHERE portfolio_name=? AND user_id = ? AND portfolio_id <> ?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setString(1, name);
+			prepStmt.setString(2, user);
+			prepStmt.setInt(3, id);
+			ResultSet rs = prepStmt.executeQuery();
+			if(rs.next()){
+				result = true;
+			}
+			prepStmt.close();
+			return result;
+		} catch(Exception e){
+			e.printStackTrace();
+			return result;
+		} finally {
+			connection.close();
+		}
+	}
+	
+	public static boolean updatePortfolioName(int id, String name) throws SQLException {
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "UPDATE portfolios SET portfolio_name=? WHERE portfolio_id=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setString(1, name);
+			prepStmt.setInt(2, id);
+			prepStmt.executeUpdate();
+			prepStmt.close();
+			return true;
+		} catch(Exception e){
+			e.printStackTrace();
+			return false;
 		} finally {
 			connection.close();
 		}
