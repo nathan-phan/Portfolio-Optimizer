@@ -381,6 +381,48 @@ label[data-error]:after {
 	margin: 100px auto;
 }
 
+.report-container {
+	position: absolute;
+	top: 130px;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.portfolio-report-card {
+	margin: 10px 100px 50px 100px;
+}
+
+.stock-report-card {
+	margin: 50px 100px;
+}
+
+.portfolio-report-card .row, .stock-report-card .row {
+	margin-bottom: 5px;
+}
+
+.report-port-name {
+	margin-top: 20px;
+	font-weight: 500;
+	font-size: 2em;
+	color: blue;
+}
+
+.report-stock-name {
+	margin-top: 20px;
+  font-weight: 500;
+  font-size: 1.5em;
+  margin-left: 100px !important;
+}
+
+.col-25 {
+	width: 200px !important;
+}
+
+.report-container table tbody tr:nth-child(even){
+	background-color: #e5e5e5;
+}
+
 @media only screen and (max-width: 1400px) {
 	.login-card {
 		margin-top: 5%;

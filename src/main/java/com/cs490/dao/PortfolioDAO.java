@@ -14,11 +14,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 
@@ -27,6 +29,8 @@ import com.cs490.servlet.MainServlet;
 import com.cs490.vo.GoogleStock;
 import com.cs490.vo.PortfolioVO;
 import com.cs490.vo.RecordVO;
+import com.cs490.vo.StockPriceComparator;
+import com.cs490.vo.StockSnapshotVO;
 import com.cs490.vo.StockVO;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -91,7 +95,7 @@ public class PortfolioDAO {
 		}
 	}
 
-	public static LinkedHashMap<StockVO, Integer> findStocksByPortfolioId(int portId) throws SQLException {
+	public static LinkedHashMap<StockVO, Integer> findCurrentStocksByPortfolioId(int portId) throws SQLException {
 		Connection connection = null;
 		LinkedHashMap<StockVO, Integer> stocks = new LinkedHashMap<StockVO, Integer>();
 		try {
@@ -119,6 +123,62 @@ public class PortfolioDAO {
 		}
 	}
 
+	public static LinkedHashMap<StockVO, Integer> findAllStocksByPortfolioId(int portId) throws SQLException {
+		Connection connection = null;
+		LinkedHashMap<StockVO, Integer> stocks = new LinkedHashMap<StockVO, Integer>();
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT stock_symbol, shares FROM portfolio_stocks WHERE portfolio_id=? and shares <> 0";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, portId);
+			ResultSet rs = prepStmt.executeQuery();
+			while(rs.next()){
+				StockVO stock = new StockVO(rs.getString(1));
+				stocks.put(stock, rs.getInt(2));
+			}
+			prepStmt.close();
+			return stocks;
+		} catch(Exception e){
+			e.printStackTrace();
+			return stocks;
+		} finally {
+			connection.close();
+		}
+	}
+
+	public static int findStockShares(String symbol, int id) throws SQLException {
+		Connection connection = null;
+		int result = -1;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT shares FROM portfolio_stocks WHERE portfolio_id=? and stock_symbol=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, id);
+			prepStmt.setString(2, symbol);
+			ResultSet rs = prepStmt.executeQuery();
+			if(rs.next()){
+				result = rs.getInt(1);
+			}
+			prepStmt.close();
+			return result;
+		} catch(Exception e){
+			e.printStackTrace();
+			return result;
+		} finally {
+			connection.close();
+		}
+	}
+	
 	public static PortfolioVO getPortfolioById(int portfolioId) throws SQLException {
 		Connection connection = null;
 		PortfolioVO port = new PortfolioVO();
@@ -137,7 +197,38 @@ public class PortfolioDAO {
 				port.setName(rs.getString(1));
 				port.setBalance(rs.getBigDecimal(2));
 				port.setId(portfolioId);
-				LinkedHashMap<StockVO, Integer> stocks = findStocksByPortfolioId(portfolioId);
+				LinkedHashMap<StockVO, Integer> stocks = findCurrentStocksByPortfolioId(portfolioId);
+				port.setStocks(stocks);
+			}
+			prepStmt.close();
+			return port;
+		} catch(Exception e){
+			e.printStackTrace();
+			return port;
+		} finally {
+			connection.close();
+		}
+	}
+	
+	public static PortfolioVO getPortfolioByIdForReport(int portfolioId) throws SQLException {
+		Connection connection = null;
+		PortfolioVO port = new PortfolioVO();
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT portfolio_name, current_balance FROM portfolios WHERE portfolio_id=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, portfolioId);
+			ResultSet rs = prepStmt.executeQuery();
+			while(rs.next()){
+				port.setName(rs.getString(1));
+				port.setBalance(rs.getBigDecimal(2));
+				port.setId(portfolioId);
+				LinkedHashMap<StockVO, Integer> stocks = findAllStocksByPortfolioId(portfolioId);
 				port.setStocks(stocks);
 			}
 			prepStmt.close();
@@ -178,7 +269,7 @@ public class PortfolioDAO {
 				prepStmt.executeUpdate();
 				prepStmt.close();
 			}
-			
+
 			result = true;
 		} catch(Exception e){
 			e.printStackTrace();
@@ -188,7 +279,7 @@ public class PortfolioDAO {
 		}
 		return result;
 	}
-	
+
 	public static boolean removeStocksFromPortfolio(int id, String symbol, int shares) throws SQLException {
 		boolean result = false;
 		Connection connection = null;
@@ -200,14 +291,14 @@ public class PortfolioDAO {
 		}
 		PreparedStatement prepStmt = null;
 		try {
-				String query =  "UPDATE portfolio_stocks SET shares = (shares - ?) WHERE portfolio_id = ? AND stock_symbol = ?";
-				prepStmt = connection.prepareStatement(query);
-				prepStmt.setInt(1, shares);
-				prepStmt.setInt(2, id);
-				prepStmt.setString(3, symbol);
-				prepStmt.executeUpdate();
-				prepStmt.close();
-			
+			String query =  "UPDATE portfolio_stocks SET shares = (shares - ?) WHERE portfolio_id = ? AND stock_symbol = ?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, shares);
+			prepStmt.setInt(2, id);
+			prepStmt.setString(3, symbol);
+			prepStmt.executeUpdate();
+			prepStmt.close();
+
 			result = true;
 		} catch(Exception e){
 			e.printStackTrace();
@@ -337,7 +428,7 @@ public class PortfolioDAO {
 			return history.get(0).getClose();
 		}
 	}
-	
+
 	public static BigDecimal findCurrentStockPrice(String symbol) throws SQLException, JsonParseException, JsonMappingException, IOException {
 		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
 		if(Arrays.asList(niftyArray).contains(symbol)){
@@ -447,6 +538,40 @@ public class PortfolioDAO {
 			connection.close();
 		}
 	}
+	
+	public static ArrayList<RecordVO> getMoneyRecord(int id) throws SQLException {
+		Connection connection = null;
+		ArrayList<RecordVO> records = new  ArrayList<RecordVO>();
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT transaction_type, money_amount, balance, time "
+					+ "FROM history WHERE portfolio_id=? "
+					+ "AND transaction_type IN ('Deposit', 'Withdraw') ";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, id);
+			ResultSet rs = prepStmt.executeQuery();
+			while(rs.next()){
+				RecordVO record = new RecordVO();
+				record.setType(rs.getString(1));
+				record.setAmount(rs.getBigDecimal(2));
+				record.setBalance(rs.getBigDecimal(3));
+				record.setTime(rs.getString(4));
+				records.add(record);
+			}
+			prepStmt.close();
+			return records;
+		} catch(Exception e){
+			e.printStackTrace();
+			return records;
+		} finally {
+			connection.close();
+		}
+	}
 
 	public static boolean deletePortfolio(int id) throws SQLException {
 		Connection connection = null;
@@ -505,7 +630,7 @@ public class PortfolioDAO {
 		}
 		return result;
 	}
-	
+
 	public static boolean recordStockRemoval(String symbol, int shares, BigDecimal price, int id) throws SQLException{
 		boolean result = false;
 		Connection connection = null;
@@ -615,7 +740,7 @@ public class PortfolioDAO {
 			connection.close();
 		}
 	}
-	
+
 	public static BigDecimal initialCurrencyConvert (String symbol, BigDecimal price) {
 		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
 		String[] straitArray = MainServlet.STRAIT_STOCKS.split(",");
@@ -627,7 +752,7 @@ public class PortfolioDAO {
 		}
 		return price;
 	}
-	
+
 	public static LinkedHashMap<String, Double> getExchangeRates() throws MalformedURLException, IOException{
 		String jsonContent = IOUtils.toString(new URL("http://www.apilayer.net/api/live?access_key=" + MainServlet.CURRENCY_API_KEY + "&format=1"), Charset.forName("UTF-8"));
 		JsonParser jsonParser = new JsonParser();
@@ -638,7 +763,7 @@ public class PortfolioDAO {
 		rates.put("USDSGD", Double.valueOf(sgdRate));
 		return rates;
 	}
-	
+
 	public static BigDecimal liveCurrencyConvert(String symbol, BigDecimal price) throws MalformedURLException, IOException {
 		String jsonContent = IOUtils.toString(new URL("http://www.apilayer.net/api/live?access_key=" + MainServlet.CURRENCY_API_KEY + "&format=1"), Charset.forName("UTF-8"));
 		JsonParser jsonParser = new JsonParser();
@@ -654,7 +779,7 @@ public class PortfolioDAO {
 		}
 		return price;
 	}
-	
+
 	public static boolean checkForInitialPurchase(int id, String symbol) throws SQLException{
 		Connection connection = null;
 		boolean result = true;
@@ -710,7 +835,7 @@ public class PortfolioDAO {
 			connection.close();
 		}
 	}
-	
+
 	public static boolean updatePortfolioName(int id, String name) throws SQLException {
 		Connection connection = null;
 		try {
@@ -734,5 +859,108 @@ public class PortfolioDAO {
 		} finally {
 			connection.close();
 		}
+	}
+
+	public static ArrayList<StockSnapshotVO> findStockPurchaseHistory(String symbol, int id) throws SQLException {
+		ArrayList<StockSnapshotVO> history = new ArrayList<StockSnapshotVO>();
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT shares, share_price, time FROM history WHERE portfolio_id=? AND transaction_type='Buy' AND stock_symbol=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, id);
+			prepStmt.setString(2, symbol);
+			ResultSet rs = prepStmt.executeQuery();
+			while(rs.next()){
+				StockSnapshotVO snapshot = new StockSnapshotVO();
+				snapshot.setShares(rs.getInt(1));
+				snapshot.setDate(rs.getString(3));
+				snapshot.setPrice(rs.getBigDecimal(2));
+				snapshot.setSymbol(symbol);
+				history.add(snapshot);
+			}
+			prepStmt.close();
+			rs.close();
+		} catch(Exception e){
+			e.printStackTrace();
+		} finally {
+			connection.close();
+		}
+		return history;
+	}
+
+	public static ArrayList<StockSnapshotVO> findStockSellHistory(String symbol, int id) throws SQLException {
+		ArrayList<StockSnapshotVO> history = new ArrayList<StockSnapshotVO>();
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT shares, share_price, time FROM history WHERE portfolio_id=? AND transaction_type='Sell' AND stock_symbol=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, id);
+			prepStmt.setString(2, symbol);
+			ResultSet rs = prepStmt.executeQuery();
+			while(rs.next()){
+				StockSnapshotVO snapshot = new StockSnapshotVO();
+				snapshot.setShares(rs.getInt(1));
+				snapshot.setDate(rs.getString(3));
+				snapshot.setPrice(rs.getBigDecimal(2));
+				snapshot.setSymbol(symbol);
+				history.add(snapshot);
+			}
+			prepStmt.close();
+			rs.close();
+		} catch(Exception e){
+			e.printStackTrace();
+		} finally {
+			connection.close();
+		}
+		return history;
+	}
+
+	public static ArrayList<BigDecimal> findNetGain(ArrayList<StockSnapshotVO> buyHistory, ArrayList<StockSnapshotVO> sellHistory) throws CloneNotSupportedException {
+		ArrayList<StockSnapshotVO> sortedBuy = new ArrayList<StockSnapshotVO>(buyHistory.size());
+		ArrayList<BigDecimal> profit = new ArrayList<BigDecimal>();
+		for (StockSnapshotVO x: buyHistory) {
+			sortedBuy.add((StockSnapshotVO)x.clone());
+		}
+		Collections.sort(sortedBuy, new StockPriceComparator());
+		for(StockSnapshotVO s : sellHistory) {
+			if(sortedBuy.isEmpty()) return profit;
+			BigDecimal tempNet = new BigDecimal(0);
+			BigDecimal sellPrice = s.getPrice();
+			int sellShares = s.getShares();
+			for(int i=0; i<sortedBuy.size();i++) {
+				StockSnapshotVO b = sortedBuy.get(i);
+				int buyShares = b.getShares();
+				if(buyShares <= sellShares) {
+					sellShares -= buyShares;
+					BigDecimal buyPrice = b.getPrice();
+					BigDecimal currDiff = sellPrice.subtract(buyPrice);
+					tempNet = tempNet.add(currDiff.multiply(new BigDecimal(buyShares)));
+					sortedBuy.remove(i);
+					i--;
+					continue;
+				} else {
+					buyShares -= sellShares;
+					b.setShares(buyShares);
+					BigDecimal buyPrice = b.getPrice();
+					BigDecimal currDiff = sellPrice.subtract(buyPrice);
+					tempNet = tempNet.add(currDiff.multiply(new BigDecimal(sellShares)));
+				}
+				break;
+			}
+			profit.add(tempNet);
+		}
+		return profit;
 	}
 }

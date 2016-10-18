@@ -1,15 +1,11 @@
 package com.cs490.servlet;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -23,20 +19,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.io.IOUtils;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 import com.cs490.dao.PortfolioDAO;
 import com.cs490.dao.UserDAO;
+import com.cs490.vo.PortfolioReportVO;
 import com.cs490.vo.PortfolioVO;
 import com.cs490.vo.RecordVO;
+import com.cs490.vo.StockReportVO;
+import com.cs490.vo.StockSnapshotVO;
 import com.cs490.vo.StockVO;
 import com.cs490.vo.UserVO;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import yahoofinance.Stock;
-import yahoofinance.YahooFinance;
 
 @WebServlet(name="MainServlet", displayName="MainServlet", urlPatterns= {
 		"/webapps7/stock/view", "/webapps7/login", "/webapps7/register", "/webapps7/forgotpass",
@@ -46,7 +42,8 @@ import yahoofinance.YahooFinance;
 		"/webapps7/withdraw","/webapps7/deposit",
 		"/webapps7/portfolio/delete", "/webapps7/portfolio/history",
 		"/webapps7/sheet/test", "/webapps7/portfolio/update","/webapps7/account/view",
-		"/webapps7/account/update", "/webapps7/stock/checkprice"
+		"/webapps7/account/update", "/webapps7/stock/checkprice","/webapps7/portfolio/report",
+		"/webapps7/portfolio/report/download"
 })
 public class MainServlet extends HttpServlet {
 	public static final long serialVersionUID = 389807010932642772L;
@@ -210,7 +207,33 @@ public class MainServlet extends HttpServlet {
 		if(request.getRequestURI().contains("/sheet/test")){
 			try {
 				doSheetTest(request, response);
-			} catch (SQLException e) {
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+
+		if(request.getRequestURI().contains("/portfolio/report") && !request.getRequestURI().contains("/portfolio/report/download")){
+			if(!checkLoggedIn(request, response)){
+				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+				return;
+			}
+			try {
+				displayPortfolioReport(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+
+		if(request.getRequestURI().contains("/portfolio/report/download")){
+			if(!checkLoggedIn(request, response)){
+				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+				return;
+			}
+			try {
+				downloadCsv(request, response);
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			return;
@@ -224,6 +247,8 @@ public class MainServlet extends HttpServlet {
 			}
 			return;
 		}
+
+
 	}
 
 	@Override																	
@@ -560,7 +585,6 @@ public class MainServlet extends HttpServlet {
 				BigDecimal foreignChange = stock.getForeignChange();
 				stock.setChange(foreignChange.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP));
 				stock.setPreviousClosingPrice(prevClose.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP));
-				stock.setPrice(convertedPrice);
 				totalStockValue = totalStockValue.add(convertedPrice.multiply(new BigDecimal(shares)));
 				overseaValue = overseaValue.add(convertedPrice.multiply(new BigDecimal(shares)));
 			} else if(stock.getCurrency().equals("SGD")){
@@ -704,41 +728,7 @@ public class MainServlet extends HttpServlet {
 		return;
 	}
 
-	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
-		response.setContentType("text/csv");
-		String disposition = "attachment; fileName=outputfile.csv";
-		response.setHeader("Content-Disposition", disposition);
-		OutputStream outputStream = response.getOutputStream();
-		StringBuilder sb = new StringBuilder();
-		sb.append("id");
-		sb.append(',');
-		sb.append("Name");
-		sb.append('\n');
-
-		sb.append("1");
-		sb.append(',');
-		sb.append("Prashant Ghimire");
-		sb.append('\n');
-		sb.append('\n');
-		sb.append('\n');
-		
-		sb.append("abc");
-		sb.append(',');
-		sb.append("def");
-		sb.append(',');
-		sb.append("ghk");
-		sb.append('\n');
-		
-		sb.append("Name3");
-		sb.append(',');
-		sb.append("Name1");
-		sb.append(',');
-		sb.append("Name2");
-		sb.append('\n');
-
-		outputStream.write(sb.toString().getBytes());
-		outputStream.flush();
-		outputStream.close();
+	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException{
 	}
 
 	private void buyStock(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
@@ -753,7 +743,7 @@ public class MainServlet extends HttpServlet {
 			response.getWriter().write(json.toString());
 			return;
 		}
-		symbol = request.getParameter("symbol");
+		symbol = request.getParameter("symbol").toUpperCase();
 		try{
 			shares = Integer.parseInt(request.getParameter("shares"));
 		} catch (Exception e) {
@@ -823,7 +813,7 @@ public class MainServlet extends HttpServlet {
 			response.getWriter().write(json.toString());
 			return;
 		}
-		symbol = request.getParameter("symbol");
+		symbol = request.getParameter("symbol").toUpperCase();
 		try{
 			shares = Integer.parseInt(request.getParameter("shares"));
 		} catch (Exception e) {
@@ -916,7 +906,7 @@ public class MainServlet extends HttpServlet {
 			response.getWriter().write(json.toString());
 			return;
 		}
-		String symbol = request.getParameter("symbol");
+		String symbol = request.getParameter("symbol").toUpperCase();
 		StockVO stock = new StockVO(symbol);
 		BigDecimal price = stock.getPrice();
 		json.addProperty("status", "success");
@@ -939,6 +929,162 @@ public class MainServlet extends HttpServlet {
 			return;
 		}
 		displayMainScreen(request, response);
+	}
+
+	private void displayPortfolioReport(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException, CloneNotSupportedException {
+		if(request.getParameter("id") == null) {
+			request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+			return;
+		}
+		int id = Integer.parseInt(request.getParameter("id"));
+		PortfolioReportVO report = new PortfolioReportVO(id);
+		request.setAttribute("report", report);
+		request.getRequestDispatcher("/PortfolioReport.jsp").forward(request, response);
+	}
+
+	private void downloadCsv(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException{
+		if(request.getParameter("id") == null) {
+			request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+			return;
+		}
+		int id = Integer.parseInt(request.getParameter("id"));		
+		PortfolioReportVO rep = new PortfolioReportVO(id);
+		response.setContentType("text/csv");
+		String disposition = "attachment; fileName=report.csv";
+		response.setHeader("Content-Disposition", disposition);
+		OutputStream outputStream = response.getOutputStream();
+		StringBuilder sb = new StringBuilder();
+		DecimalFormat df = new DecimalFormat();
+		df.setMaximumFractionDigits(2);
+		df.setMinimumFractionDigits(0);
+		DecimalFormat pf = new DecimalFormat();
+		pf.setMaximumFractionDigits(2);
+		pf.setMinimumFractionDigits(0);
+		pf.setGroupingUsed(false);
+		sb.append("Portfolio Name");
+		sb.append('\n');
+
+		sb.append(rep.getName());
+		sb.append('\n');
+		sb.append('\n');
+
+		sb.append("Balance");
+		sb.append(',');
+		sb.append("Oversea Value");
+		sb.append(',');
+		sb.append("Domestic Value");
+		sb.append(',');
+		sb.append("Total Value");
+		sb.append(',');
+		sb.append("Oversea Percent");
+		sb.append(',');
+		sb.append("Domestic Percent");
+		sb.append(',');
+		sb.append("Cash Percent");
+		sb.append('\n');
+
+		sb.append(df.format(rep.getBalance()).replaceAll(",", ""));
+		sb.append(',');
+		sb.append(df.format(rep.getOverseaValue()).replaceAll(",", ""));
+		sb.append(',');
+		sb.append(df.format(rep.getDomesticValue()).replaceAll(",", ""));
+		sb.append(',');
+		sb.append(df.format(rep.getTotalStockValue()).replaceAll(",", ""));
+		sb.append(',');
+		sb.append(pf.format(rep.getOverseaPercent()));
+		sb.append(',');
+		sb.append(pf.format(rep.getDomesticPercent()));
+		sb.append(',');
+		sb.append(pf.format(rep.getCashPercent()));
+		sb.append('\n');
+		sb.append('\n');
+
+		sb.append("Transaction History");
+		sb.append('\n');
+		sb.append('\n');
+
+		sb.append("Type");
+		sb.append(',');
+		sb.append("Amount");
+		sb.append(',');
+		sb.append("Time");
+		sb.append('\n');
+		sb.append("Balance");
+		sb.append('\n');
+
+		for(RecordVO rec:rep.getHistory()){
+			sb.append(rec.getType());
+			sb.append(',');
+			sb.append(df.format(rec.getAmount()).replaceAll(",", ""));
+			sb.append(',');
+			sb.append(rec.getTime());
+			sb.append(',');
+			sb.append(df.format(rec.getBalance()).replaceAll(",", ""));
+			sb.append('\n');
+		}
+		sb.append('\n');
+		sb.append('\n');
+
+		for(StockReportVO sr:rep.getStockReports()){
+			sb.append("Stock Name");
+			sb.append('\n');
+
+			sb.append(sr.getName());
+			sb.append('\n');
+			sb.append('\n');
+
+			sb.append("Purchase History");
+			sb.append('\n');
+			sb.append('\n');
+
+			sb.append("Date");
+			sb.append(',');
+			sb.append("Shares");
+			sb.append(',');
+			sb.append("Price");
+			sb.append('\n');
+
+			for(StockSnapshotVO ss:sr.getBuyHistory()){
+				sb.append(ss.getDate());
+				sb.append(',');
+				sb.append(ss.getShares());
+				sb.append(',');
+				sb.append(df.format(ss.getPrice()).replaceAll(",", ""));
+				sb.append('\n');
+			}
+			sb.append('\n');
+			if(!sr.getSellHistory().isEmpty()){
+				sb.append("Sell History");
+				sb.append('\n');
+				sb.append('\n');
+				
+				sb.append("Date");
+				sb.append(',');
+				sb.append("Shares");
+				sb.append(',');
+				sb.append("Price");
+				sb.append(',');
+				sb.append("Net Gain");
+				sb.append('\n');
+				
+				for(StockSnapshotVO ss:sr.getSellHistory()){
+					sb.append(ss.getDate());
+					sb.append(',');
+					sb.append(ss.getShares());
+					sb.append(',');
+					sb.append(df.format(ss.getPrice()).replaceAll(",", ""));
+					sb.append(',');
+					sb.append(df.format(ss.getNet()).replaceAll(",", ""));
+					sb.append('\n');
+				}
+			}
+			sb.append('\n');
+		}
+		System.out.println(sb.toString());
+		outputStream.write(sb.toString().getBytes());
+		outputStream.flush();
+		outputStream.close();
+
 	}
 
 	private void logOut(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{

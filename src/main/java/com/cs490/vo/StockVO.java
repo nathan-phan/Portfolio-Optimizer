@@ -29,7 +29,7 @@ public class StockVO {
 		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
 		if(Arrays.asList(niftyArray).contains(symbol)){
 			GoogleStock stock = new GoogleStock(symbol.replace("&", "%26"));
-			this.symbol = stock.getSymbol();
+			this.symbol = symbol;
 			this.exchange = stock.getExchange();
 			this.price = stock.getPrice();
 			this.foreignChange = stock.getChange();
@@ -42,7 +42,7 @@ public class StockVO {
 			this.currency = "INR";
 		} else {
 			Stock stock = YahooFinance.get(symbol);
-			this.symbol = stock.getSymbol();
+			this.symbol = symbol;
 			this.exchange = stock.getStockExchange();
 			this.foreignPrice = stock.getQuote().getPrice();
 			this.price = stock.getQuote().getPrice();

@@ -71,9 +71,9 @@
 					href='#withdraw-modal' id='withdraw-button'><i
 					class=" material-icons left">remove</i> <span
 					class='nav-bar-button-label'>Withdraw</span> </a> <a
-					class="waves-effect btn-flat  nav-bar-button" id='export-button'><i
-					class=" material-icons left">file_download</i> <span
-					class='nav-bar-button-label'>Export</span> </a> <a
+					class="waves-effect btn-flat nav-bar-button" href='/webapps7/portfolio/report?id=${portfolio.id}' id='report-button'><i
+					class=" material-icons left">assessment</i> <span
+					class='nav-bar-button-label'>Report</span> </a> <a
 					class="waves-effect btn-flat  nav-bar-button" id='optimizer-button'><i
 					class=" material-icons left">assignment</i> <span
 					class='nav-bar-button-label'>Optimizer</span> </a>
@@ -332,6 +332,10 @@
 					</form>
 				</div>
 			</div>
+			<div class="row deposit-warning-row display-none red-text">
+				<div class="col s12 ">Warning: Adding money will cause the
+					portfolio to have more than 10% cash.</div>
+			</div>
 		</div>
 		<div class="modal-footer">
 			<a id='deposit-submit' class="modal-action btn-flat">Deposit</a> <a
@@ -456,6 +460,9 @@
 					</div>
 				</div>
 			</div>
+			<div class="row buy-warning-row display-none red-text">
+				<div class="col s12 "></div>
+			</div>
 		</div>
 		<div class="modal-footer">
 			<a id='buy-stock-confirm-submit'
@@ -481,6 +488,9 @@
 						</div>
 					</div>
 				</div>
+			</div>
+			<div class="row buy-warning-row display-none red-text">
+				<div class="col s12 "></div>
 			</div>
 		</div>
 		<div class="modal-footer">

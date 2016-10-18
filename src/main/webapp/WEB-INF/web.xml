@@ -82,6 +82,14 @@
 		<url-pattern>/webapps7/portfolio/update</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
+    <servlet-name>MainServlet</servlet-name>
+    <url-pattern>/webapps7/portfolio/report</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>MainServlet</servlet-name>
+    <url-pattern>/webapps7/portfolio/report/download</url-pattern>
+  </servlet-mapping>
+	<servlet-mapping>
 		<servlet-name>MainServlet</servlet-name>
 		<url-pattern>/webapps7/account/view</url-pattern>
 	</servlet-mapping>
