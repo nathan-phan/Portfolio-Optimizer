@@ -187,8 +187,8 @@
 						<thead>
 							<tr>
 								<td class='bold col-25'>Date</td>
-								<td class='bold col-25'>Shares</td>
 								<td class='bold col-25'>Price</td>
+								<td class='bold col-25'>Shares</td>
 								<td class='bold col-25'>&nbsp;</td>
 							</tr>
 						</thead>
@@ -213,8 +213,8 @@
 							<thead>
 								<tr>
 									<td class='bold col-25'>Date</td>
-									<td class='bold col-25'>Shares</td>
 									<td class='bold col-25'>Price</td>
+									<td class='bold col-25'>Shares</td>
 									<td class='bold col-25'>Net Gain</td>
 								</tr>
 							</thead>
