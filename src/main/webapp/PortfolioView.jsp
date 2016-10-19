@@ -180,15 +180,15 @@
 									stock</span></a>
 						</div>
 						<div class="col s12">
-							<span class='bold'>Oversea Stock Value: </span>: &nbsp;
+							<span class='bold'>Oversea Stock Value: </span> &nbsp;
 							<fmt:formatNumber value="${overseaValue}" type="currency" />
 						</div>
 						<div class="col s12">
-							<span class='bold'>Domestic Stocks Value: </span>: &nbsp;
+							<span class='bold'>Domestic Stocks Value: </span> &nbsp;
 							<fmt:formatNumber value="${domesticValue}" type="currency" />
 						</div>
 						<div class="col s12">
-							<span class='bold'>Total Stocks Value: </span>: &nbsp;
+							<span class='bold'>Total Stocks Value: </span> &nbsp;
 							<fmt:formatNumber value="${totalValue}" type="currency" />
 						</div>
 						<div class="col s12 violation-block display-none">
