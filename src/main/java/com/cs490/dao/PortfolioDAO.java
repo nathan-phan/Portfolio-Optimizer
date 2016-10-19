@@ -178,7 +178,7 @@ public class PortfolioDAO {
 			connection.close();
 		}
 	}
-	
+
 	public static PortfolioVO getPortfolioById(int portfolioId) throws SQLException {
 		Connection connection = null;
 		PortfolioVO port = new PortfolioVO();
@@ -209,7 +209,7 @@ public class PortfolioDAO {
 			connection.close();
 		}
 	}
-	
+
 	public static PortfolioVO getPortfolioByIdForReport(int portfolioId) throws SQLException {
 		Connection connection = null;
 		PortfolioVO port = new PortfolioVO();
@@ -538,7 +538,7 @@ public class PortfolioDAO {
 			connection.close();
 		}
 	}
-	
+
 	public static ArrayList<RecordVO> getMoneyRecord(int id) throws SQLException {
 		Connection connection = null;
 		ArrayList<RecordVO> records = new  ArrayList<RecordVO>();
@@ -597,7 +597,7 @@ public class PortfolioDAO {
 		}
 	}
 
-	public static boolean recordStockPurchase(String symbol, int shares, BigDecimal price, int id) throws SQLException{
+	public static boolean recordStockPurchase(String symbol, int shares, BigDecimal price, int id, boolean firstTime) throws SQLException{
 		boolean result = false;
 		Connection connection = null;
 		try {
@@ -608,7 +608,7 @@ public class PortfolioDAO {
 		}
 		PreparedStatement prepStmt = null;
 		try {
-			String timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+			String timeStamp = firstTime? "2016-09-12 00:00:00" : new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 			BigDecimal currentBalance = findPortfolioBalance(id);
 			String query =  "INSERT INTO history (transaction_type, stock_symbol, shares, share_price, balance, time, portfolio_id) VALUES (?,?,?,?,?,?,?)";
 			prepStmt = connection.prepareStatement(query);
@@ -927,6 +927,40 @@ public class PortfolioDAO {
 		return history;
 	}
 
+	public static ArrayList<StockSnapshotVO> findStockTransactionHistory(String symbol, int id) throws SQLException {
+		ArrayList<StockSnapshotVO> history = new ArrayList<StockSnapshotVO>();
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PreparedStatement prepStmt = null;
+		try {
+			String query = "SELECT shares, share_price, time, transaction_type FROM history WHERE portfolio_id=? AND transaction_type IN ('Sell','Buy') AND stock_symbol=?";
+			prepStmt = connection.prepareStatement(query);
+			prepStmt.setInt(1, id);
+			prepStmt.setString(2, symbol);
+			ResultSet rs = prepStmt.executeQuery();
+			while(rs.next()){
+				StockSnapshotVO snapshot = new StockSnapshotVO();
+				snapshot.setShares(rs.getInt(1));
+				snapshot.setDate(rs.getString(3));
+				snapshot.setPrice(rs.getBigDecimal(2));
+				snapshot.setSymbol(symbol);
+				snapshot.setType(rs.getString(4));
+				history.add(snapshot);
+			}
+			prepStmt.close();
+			rs.close();
+		} catch(Exception e){
+			e.printStackTrace();
+		} finally {
+			connection.close();
+		}
+		return history;
+	}
+
 	public static ArrayList<BigDecimal> findNetGain(ArrayList<StockSnapshotVO> buyHistory, ArrayList<StockSnapshotVO> sellHistory) throws CloneNotSupportedException {
 		ArrayList<StockSnapshotVO> sortedBuy = new ArrayList<StockSnapshotVO>(buyHistory.size());
 		ArrayList<BigDecimal> profit = new ArrayList<BigDecimal>();
@@ -960,6 +994,64 @@ public class PortfolioDAO {
 				break;
 			}
 			profit.add(tempNet);
+		}
+		return profit;
+	}
+
+	//This is not an elegant method at all but since user will probably have fewer than 10 stocks
+	//and each stock has fewer than 10 transactions, this method is probably acceptable
+	public static ArrayList<BigDecimal> findNetGain(ArrayList<StockSnapshotVO> history) throws CloneNotSupportedException {
+		ArrayList<BigDecimal> profit = new ArrayList<BigDecimal>();
+		for(int i=0; i<history.size(); i++) {
+			if(history.get(i).getType().equals("Sell")) {
+				ArrayList<StockSnapshotVO> previousTransactions = new ArrayList<StockSnapshotVO>( history.subList(0, i));
+				ArrayList<StockSnapshotVO> previousPurchases = new ArrayList<StockSnapshotVO>();
+				for(StockSnapshotVO ss: previousTransactions){
+					if(ss.getType().equals("Buy")){
+						previousPurchases.add(ss);
+					}
+				}
+				ArrayList<StockSnapshotVO> sortedBuy = new ArrayList<StockSnapshotVO>(previousPurchases.size());
+				for (StockSnapshotVO x: previousPurchases) {
+					sortedBuy.add((StockSnapshotVO)x.clone());
+				}
+				Collections.sort(sortedBuy, new StockPriceComparator());
+				if(sortedBuy.isEmpty()) return profit;
+				BigDecimal tempNet = new BigDecimal(0);
+				BigDecimal sellPrice = history.get(i).getPrice();
+				int sellShares = history.get(i).getShares();
+				for(int j=0; j<sortedBuy.size();j++) {
+					StockSnapshotVO originalB = new StockSnapshotVO();
+					StockSnapshotVO b = sortedBuy.get(j);
+					for(StockSnapshotVO x:history){
+						if(x.getType().equals("Buy") && x.getDate().equals(b.getDate())){
+							originalB = x;
+							break;
+						}
+					}
+					int buyShares = b.getShares();
+					if(buyShares <= sellShares) {
+						sellShares -= buyShares;
+						BigDecimal buyPrice = b.getPrice();
+						BigDecimal currDiff = sellPrice.subtract(buyPrice);
+						tempNet = tempNet.add(currDiff.multiply(new BigDecimal(buyShares)));
+						sortedBuy.remove(j);
+						history.remove(originalB);
+						i--;
+						j--;
+						continue;
+					} else {
+						buyShares -= sellShares;
+						b.setShares(buyShares);
+						originalB.setShares(buyShares);
+						BigDecimal buyPrice = b.getPrice();
+						BigDecimal currDiff = sellPrice.subtract(buyPrice);
+						tempNet = tempNet.add(currDiff.multiply(new BigDecimal(sellShares)));
+					}
+					break;
+				}
+				profit.add(tempNet);
+			}
 		}
 		return profit;
 	}

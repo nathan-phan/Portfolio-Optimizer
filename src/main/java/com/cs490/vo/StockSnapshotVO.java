@@ -3,6 +3,7 @@ package com.cs490.vo;
 import java.math.BigDecimal;
 
 public class StockSnapshotVO implements Cloneable{
+	private String type;
 	private String date;
 	private String symbol;
 	private int shares;
@@ -10,6 +11,7 @@ public class StockSnapshotVO implements Cloneable{
 	private BigDecimal net;
 
 	public StockSnapshotVO(){
+		setType("");
 		date = "";
 		symbol = "";
 		shares = 0;
@@ -51,5 +53,13 @@ public class StockSnapshotVO implements Cloneable{
 
 	public void setNet(BigDecimal net) {
 		this.net = net;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 }

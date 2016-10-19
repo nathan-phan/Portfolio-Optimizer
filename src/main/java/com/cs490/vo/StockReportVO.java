@@ -20,6 +20,7 @@ public class StockReportVO {
 	private int shares;
 	private ArrayList<StockSnapshotVO> buyHistory;
 	private ArrayList<StockSnapshotVO> sellHistory;
+	private ArrayList<StockSnapshotVO> stockHistory;
 	private BigDecimal foreignPrice;
 	private BigDecimal price;
 	private BigDecimal value;
@@ -55,7 +56,8 @@ public class StockReportVO {
 		this.value = this.price.multiply(new BigDecimal(shares));
 		this.buyHistory = PortfolioDAO.findStockPurchaseHistory(symbol, portId);
 		this.sellHistory = PortfolioDAO.findStockSellHistory(symbol, portId);
-		ArrayList<BigDecimal> netArray = PortfolioDAO.findNetGain(buyHistory, sellHistory);
+		this.stockHistory = PortfolioDAO.findStockTransactionHistory(symbol, portId);
+		ArrayList<BigDecimal> netArray = PortfolioDAO.findNetGain(stockHistory);
 		this.profit = new BigDecimal(0);
 		for(int i = 0; i < sellHistory.size(); i++) {
 			sellHistory.get(i).setNet(netArray.get(i));
@@ -160,5 +162,13 @@ public class StockReportVO {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public ArrayList<StockSnapshotVO> getStockHistory() {
+		return stockHistory;
+	}
+
+	public void setStockHistory(ArrayList<StockSnapshotVO> stockHistory) {
+		this.stockHistory = stockHistory;
 	}
 }

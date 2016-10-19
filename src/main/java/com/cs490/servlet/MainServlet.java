@@ -790,7 +790,7 @@ public class MainServlet extends HttpServlet {
 			response.getWriter().write(json.toString());
 			return;
 		}
-		if(!PortfolioDAO.recordStockPurchase(symbol, shares, price, id)){
+		if(!PortfolioDAO.recordStockPurchase(symbol, shares, price, id, firstTime)){
 			json.addProperty("status", "failed");
 			json.addProperty("errorMessage", "Failed to record transaction.");
 			response.getWriter().write(json.toString());
