@@ -17,6 +17,8 @@ import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.gdata.client.spreadsheet.SpreadsheetService;
+import com.google.gdata.data.spreadsheet.CellEntry;
+import com.google.gdata.data.spreadsheet.CellFeed;
 import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
 import com.google.gdata.data.spreadsheet.SpreadsheetFeed;
 import com.google.gdata.data.spreadsheet.WorksheetEntry;
@@ -25,6 +27,7 @@ import com.google.gdata.util.ServiceException;
 public class GoogleSheetVO {
 	private SpreadsheetEntry sheet;
 	private List<WorksheetEntry> worksheets;
+	private SpreadsheetService service;
 
 	public GoogleSheetVO() throws GeneralSecurityException, IOException, ServiceException, URISyntaxException{
 		InputStream in = getClass().getClassLoader().getResourceAsStream("mysql.properties");
@@ -53,13 +56,12 @@ public class GoogleSheetVO {
 				.setServiceAccountScopes(SCOPES)
 				.setServiceAccountPrivateKeyFromP12File(p12)
 				.build();
-		
-		SpreadsheetService service = new SpreadsheetService("google-spreadsheet");
 
+		service = new SpreadsheetService("google-spreadsheet");
 		service.setOAuth2Credentials(credential);
 		SpreadsheetFeed feed = service.getFeed(SPREADSHEET_FEED_URL, SpreadsheetFeed.class);
 		List<SpreadsheetEntry> spreadsheets = feed.getEntries();
-		
+
 		if (spreadsheets.size() == 0) {
 			System.out.println("No spreadsheets found.");
 		}
@@ -74,6 +76,22 @@ public class GoogleSheetVO {
 		}
 	}
 
+	public List<WorksheetEntry> getWorksheets() {
+		return worksheets;
+	}
+
+	public void setWorksheets(List<WorksheetEntry> worksheets) {
+		this.worksheets = worksheets;
+	}
+
+	public SpreadsheetService getService() {
+		return service;
+	}
+
+	public void setService(SpreadsheetService service) {
+		this.service = service;
+	}
+
 	public SpreadsheetEntry getSheet() {
 		return sheet;
 	}
@@ -81,14 +99,76 @@ public class GoogleSheetVO {
 	public void setSheet(SpreadsheetEntry sheet) {
 		this.sheet = sheet;
 	}
-	
+
 	public WorksheetEntry getWorkSheet(String title) {
 		for (WorksheetEntry worksheet : worksheets) {
-      if(title.equals(worksheet.getTitle().getPlainText())){
-      	return worksheet;
-      }
-    }
+			if(title.equals(worksheet.getTitle().getPlainText())){
+				return worksheet;
+			}
+		}
 		return null;
+	}
+
+	public String getCellR1C1Value(String sheetTitle, String cellAddress) throws IOException, ServiceException {
+		for(WorksheetEntry sheet:worksheets) {
+			if(sheet.getTitle().getPlainText().equals(sheetTitle)){
+				URL cellFeedUrl = sheet.getCellFeedUrl();
+				CellFeed cellFeed = service.getFeed(cellFeedUrl, CellFeed.class);
+				for (CellEntry cell : cellFeed.getEntries()) {
+					if(cellAddress.equals(cell.getId().substring(cell.getId().lastIndexOf('/') + 1)))
+						return cell.getCell().getValue();
+				}
+			}
+		}
+		return "";
+	}
+	
+	public String getCellA1Value(String sheetTitle, String cellAddress) throws IOException, ServiceException {
+		for(WorksheetEntry sheet:worksheets) {
+			if(sheet.getTitle().getPlainText().equals(sheetTitle)){
+				URL cellFeedUrl = sheet.getCellFeedUrl();
+				CellFeed cellFeed = service.getFeed(cellFeedUrl, CellFeed.class);
+				for (CellEntry cell : cellFeed.getEntries()) {
+					if(cellAddress.equals(cell.getTitle().getPlainText()))
+						return cell.getCell().getValue();
+				}
+			}
+		}
+		return "";
+	}
+
+	public boolean updateCellR1C1Input(String sheetTitle, String cellAddress, String newInput) throws IOException, ServiceException {
+		for(WorksheetEntry sheet:worksheets) {
+			if(sheet.getTitle().getPlainText().equals(sheetTitle)){
+				URL cellFeedUrl = sheet.getCellFeedUrl();
+				CellFeed cellFeed = service.getFeed(cellFeedUrl, CellFeed.class);
+				for (CellEntry cell : cellFeed.getEntries()) {
+					if(cellAddress.equals(cell.getId().substring(cell.getId().lastIndexOf('/') + 1))){
+						cell.changeInputValueLocal(newInput);
+						cell.update();
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+	
+	public boolean updateCellA1Input(String sheetTitle, String cellAddress, String newInput) throws IOException, ServiceException {
+		for(WorksheetEntry sheet:worksheets) {
+			if(sheet.getTitle().getPlainText().equals(sheetTitle)){
+				URL cellFeedUrl = sheet.getCellFeedUrl();
+				CellFeed cellFeed = service.getFeed(cellFeedUrl, CellFeed.class);
+				for (CellEntry cell : cellFeed.getEntries()) {
+					if(cellAddress.equals(cell.getTitle().getPlainText())){
+						cell.changeInputValueLocal(newInput);
+						cell.update();
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 }

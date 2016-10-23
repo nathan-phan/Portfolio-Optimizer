@@ -1125,5 +1125,6 @@ public class MainServlet extends HttpServlet {
 
 	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException, ServiceException, GeneralSecurityException, URISyntaxException{
 		GoogleSheetVO sheet = new GoogleSheetVO();
+		sheet.updateCellA1Input("hey there", "A9", "10");
 	}
 }
