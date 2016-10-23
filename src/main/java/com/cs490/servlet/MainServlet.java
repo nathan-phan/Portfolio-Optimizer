@@ -4,11 +4,17 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -23,6 +29,7 @@ import org.jasypt.util.text.BasicTextEncryptor;
 
 import com.cs490.dao.PortfolioDAO;
 import com.cs490.dao.UserDAO;
+import com.cs490.vo.GoogleSheetVO;
 import com.cs490.vo.PortfolioReportVO;
 import com.cs490.vo.PortfolioVO;
 import com.cs490.vo.RecordVO;
@@ -30,6 +37,16 @@ import com.cs490.vo.StockReportVO;
 import com.cs490.vo.StockSnapshotVO;
 import com.cs490.vo.StockVO;
 import com.cs490.vo.UserVO;
+import com.google.gdata.client.spreadsheet.SpreadsheetQuery;
+import com.google.gdata.client.spreadsheet.SpreadsheetService;
+import com.google.gdata.data.spreadsheet.ListEntry;
+import com.google.gdata.data.spreadsheet.ListFeed;
+import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
+import com.google.gdata.data.spreadsheet.SpreadsheetFeed;
+import com.google.gdata.data.spreadsheet.WorksheetEntry;
+import com.google.gdata.data.spreadsheet.WorksheetFeed;
+import com.google.gdata.util.AuthenticationException;
+import com.google.gdata.util.ServiceException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -122,6 +139,14 @@ public class MainServlet extends HttpServlet {
 	public static final double INITIAL_USD_SGD = 1.35552;
 
 	public static final String CURRENCY_API_KEY = "da54f57878f7a80edcfce214d7889683";
+
+	private static final String SPREADSHEET_SERVICE_URL = "https://spreadsheets.google.com/feeds/spreadsheets/private/full";
+
+	private static final String GOOGLE_ACCOUNT_USERNAME = "portfolio.gorilla@gmail.com"; 
+
+	private static final String GOOGLE_ACCOUNT_PASSWORD = "cs490project"; 
+	
+	private static final String secret = "notasecret";
 
 	@Override																	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -728,9 +753,6 @@ public class MainServlet extends HttpServlet {
 		return;
 	}
 
-	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException{
-	}
-
 	private void buyStock(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException{
 		JsonObject json = new JsonObject();
 		response.setContentType("application/json");
@@ -1057,7 +1079,7 @@ public class MainServlet extends HttpServlet {
 				sb.append("Sell History");
 				sb.append('\n');
 				sb.append('\n');
-				
+
 				sb.append("Date");
 				sb.append(',');
 				sb.append("Shares");
@@ -1066,7 +1088,7 @@ public class MainServlet extends HttpServlet {
 				sb.append(',');
 				sb.append("Net Gain");
 				sb.append('\n');
-				
+
 				for(StockSnapshotVO ss:sr.getSellHistory()){
 					sb.append(ss.getDate());
 					sb.append(',');
@@ -1101,4 +1123,7 @@ public class MainServlet extends HttpServlet {
 		return true;
 	}
 
+	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException, ServiceException, GeneralSecurityException, URISyntaxException{
+		GoogleSheetVO sheet = new GoogleSheetVO();
+	}
 }
