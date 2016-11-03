@@ -332,10 +332,6 @@
 					</form>
 				</div>
 			</div>
-			<div class="row deposit-warning-row display-none red-text">
-				<div class="col s12 ">Warning: Adding money will cause the
-					portfolio to have more than 10% cash.</div>
-			</div>
 		</div>
 		<div class="modal-footer">
 			<a id='deposit-submit' class="modal-action btn-flat">Deposit</a> <a
