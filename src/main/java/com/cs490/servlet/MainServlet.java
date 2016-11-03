@@ -5,16 +5,12 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -37,15 +33,6 @@ import com.cs490.vo.StockReportVO;
 import com.cs490.vo.StockSnapshotVO;
 import com.cs490.vo.StockVO;
 import com.cs490.vo.UserVO;
-import com.google.gdata.client.spreadsheet.SpreadsheetQuery;
-import com.google.gdata.client.spreadsheet.SpreadsheetService;
-import com.google.gdata.data.spreadsheet.ListEntry;
-import com.google.gdata.data.spreadsheet.ListFeed;
-import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
-import com.google.gdata.data.spreadsheet.SpreadsheetFeed;
-import com.google.gdata.data.spreadsheet.WorksheetEntry;
-import com.google.gdata.data.spreadsheet.WorksheetFeed;
-import com.google.gdata.util.AuthenticationException;
 import com.google.gdata.util.ServiceException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -76,7 +63,7 @@ public class MainServlet extends HttpServlet {
 			+ "Z74.SI,S58.SI,U14.SI,D05.SI,O39.SI,U11.SI,"
 			+ "F34.SI,BN4.SI,H78.SI,G13.SI,C07.SI,C31.SI,"
 			+ "C6L.SI,Y92.SI,MC0.SI,C09.SI,S63.SI,S51.SI,U96.SI,"
-			+ "NS8U.SI,E5H.SI,C61U.SI,S68.SI,C38U.SI,A17U.SI,"
+			+ "E5H.SI,C61U.SI,S68.SI,C38U.SI,A17U.SI,"
 			+ "T39.SI,CC3.SI,BS6.SI,S59.SI,C52.SI,EB5.SI,"
 			+ "S08.SI,T82U.SI,K71U.SI,N03.SI,JOBS,ATV,ACTS,"
 			+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
@@ -102,7 +89,7 @@ public class MainServlet extends HttpServlet {
 	public static final String STRAIT_STOCKS = "Z74.SI,S58.SI,U14.SI,D05.SI,O39.SI,U11.SI,"
 			+ "F34.SI,BN4.SI,H78.SI,G13.SI,C07.SI,C31.SI,"
 			+ "C6L.SI,Y92.SI,MC0.SI,C09.SI,S63.SI,S51.SI,U96.SI,"
-			+ "NS8U.SI,E5H.SI,C61U.SI,S68.SI,C38U.SI,A17U.SI,"
+			+ "E5H.SI,C61U.SI,S68.SI,C38U.SI,A17U.SI,"
 			+ "T39.SI,CC3.SI,BS6.SI,S59.SI,C52.SI,EB5.SI,"
 			+ "S08.SI,T82U.SI,K71U.SI,N03.SI";
 
@@ -124,7 +111,7 @@ public class MainServlet extends HttpServlet {
 			+ "Z74.SI,S58.SI,U14.SI,D05.SI,O39.SI,U11.SI,"
 			+ "F34.SI,BN4.SI,H78.SI,G13.SI,C07.SI,C31.SI,"
 			+ "C6L.SI,Y92.SI,MC0.SI,C09.SI,S63.SI,S51.SI,U96.SI,"
-			+ "NS8U.SI,E5H.SI,C61U.SI,S68.SI,C38U.SI,A17U.SI,"
+			+ "E5H.SI,C61U.SI,S68.SI,C38U.SI,A17U.SI,"
 			+ "T39.SI,CC3.SI,BS6.SI,S59.SI,C52.SI,EB5.SI,"
 			+ "S08.SI,T82U.SI,K71U.SI,N03.SI,JOBS,ATV,ACTS,"
 			+ "GRO,AMCN,ACH,ATAI,BIDU,CYOU,CPC,STV,DL,CEA,JRJC,GRRF,LFC"
@@ -139,14 +126,6 @@ public class MainServlet extends HttpServlet {
 	public static final double INITIAL_USD_SGD = 1.35552;
 
 	public static final String CURRENCY_API_KEY = "da54f57878f7a80edcfce214d7889683";
-
-	private static final String SPREADSHEET_SERVICE_URL = "https://spreadsheets.google.com/feeds/spreadsheets/private/full";
-
-	private static final String GOOGLE_ACCOUNT_USERNAME = "portfolio.gorilla@gmail.com"; 
-
-	private static final String GOOGLE_ACCOUNT_PASSWORD = "cs490project"; 
-	
-	private static final String secret = "notasecret";
 
 	@Override																	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {

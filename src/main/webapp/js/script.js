@@ -143,7 +143,9 @@ function confirmBuyStock(){
 		type : "POST",
 		success : function(response) {
 			if (response.status == 'failed') {
-				alert(response.errorMessage);
+				$('#buy-stock-confirm-modal').closeModal();
+				$('#error-modal .modal-content').text(response.errorMessage);
+				$('#error-modal').openModal();
 				return;
 			} else {
 				location.reload();
@@ -213,7 +215,9 @@ function confirmSellStock(){
 		type : "POST",
 		success : function(response) {
 			if (response.status == 'failed') {
-				alert(response.errorMessage);
+				$('#sell-stock-confirm-modal').closeModal();
+				$('#error-modal .modal-content').text(response.errorMessage);
+				$('#error-modal').openModal();
 				return;
 			} else {
 				location.reload();

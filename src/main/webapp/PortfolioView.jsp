@@ -116,7 +116,7 @@
 											<span class='bold'><fmt:formatNumber
 													value="${entry.key.price }" type="currency" /></span> <a
 												href='#sell-stock-modal' data-shares="${entry.value}"
-												data-symbol='<c:out value='${entry.key.currency eq "INR" ? "NSE:".concat(entry.key.symbol) : entry.key.symbol}'/>'
+												data-symbol='<c:out value='${entry.key.symbol}'/>'
 												class="waves-effect btn blue modal-trigger right sell-button">
 												<span>Sell stock</span>
 											</a>
@@ -506,6 +506,13 @@
 			<a class="modal-action modal-close btn-flat">Close</a>
 		</div>
 	</div>
+	
+	<div id="error-modal" class="modal">
+		<div class="modal-content"></div>
+		<div class="modal-footer">
+			<a class="modal-action modal-close btn-flat">Close</a>
+		</div>
+	</div>
 
 	<script>
 		$(function() {
@@ -554,8 +561,8 @@
 			})
 			
 			$('#sell-stock-confirm-submit').click(function() {
-        confirmSellStock();
-      })
+		        confirmSellStock();
+		      })
 
 			$('#sell-stock-submit').click(function() {
 				$('#confirm-sell-symbol').text($('#sell-symbol-input').val());
