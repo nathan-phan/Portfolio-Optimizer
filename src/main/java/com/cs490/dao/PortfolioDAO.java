@@ -133,7 +133,7 @@ public class PortfolioDAO {
 		}
 		PreparedStatement prepStmt = null;
 		try {
-			String query = "SELECT stock_symbol, shares FROM portfolio_stocks WHERE portfolio_id=? and shares <> 0";
+			String query = "SELECT stock_symbol, shares FROM portfolio_stocks WHERE portfolio_id=?";
 			prepStmt = connection.prepareStatement(query);
 			prepStmt.setInt(1, portId);
 			ResultSet rs = prepStmt.executeQuery();
