@@ -19,6 +19,8 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.gdata.client.spreadsheet.SpreadsheetService;
 import com.google.gdata.data.spreadsheet.CellEntry;
 import com.google.gdata.data.spreadsheet.CellFeed;
+import com.google.gdata.data.spreadsheet.ListEntry;
+import com.google.gdata.data.spreadsheet.ListFeed;
 import com.google.gdata.data.spreadsheet.SpreadsheetEntry;
 import com.google.gdata.data.spreadsheet.SpreadsheetFeed;
 import com.google.gdata.data.spreadsheet.WorksheetEntry;
@@ -138,11 +140,12 @@ public class GoogleSheetVO {
 	}
 
 	public boolean updateCellR1C1Input(String sheetTitle, String cellAddress, String newInput) throws IOException, ServiceException {
-		for(WorksheetEntry sheet:worksheets) {
+		for(WorksheetEntry worksheet: this.worksheets) {
 			if(sheet.getTitle().getPlainText().equals(sheetTitle)){
-				URL cellFeedUrl = sheet.getCellFeedUrl();
+				URL cellFeedUrl = worksheet.getCellFeedUrl();
 				CellFeed cellFeed = service.getFeed(cellFeedUrl, CellFeed.class);
 				for (CellEntry cell : cellFeed.getEntries()) {
+					System.out.println("Hi " + cell.getId().substring(cell.getId().lastIndexOf('/') + 1));
 					if(cellAddress.equals(cell.getId().substring(cell.getId().lastIndexOf('/') + 1))){
 						cell.changeInputValueLocal(newInput);
 						cell.update();
@@ -170,5 +173,16 @@ public class GoogleSheetVO {
 		}
 		return false;
 	}
-
+	public boolean addCellValue(String sheetTitle, String column, String value) throws IOException, ServiceException {
+		for(WorksheetEntry sheet:worksheets) {
+			if(sheet.getTitle().getPlainText().equals(sheetTitle)){
+				URL listFeedUrl = sheet.getListFeedUrl();
+		    ListEntry row = new ListEntry();
+		    row.getCustomElements().setValueLocal(column, value);
+		    service.insert(listFeedUrl, row);
+		    return true;
+			}
+		}
+		return false;
+	}
 }
