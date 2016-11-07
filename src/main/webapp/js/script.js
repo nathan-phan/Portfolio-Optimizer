@@ -102,7 +102,6 @@ function buyStock(rate1, rate2){
 		"Invalid shares value");
 		return;
 	} else {
-		$('#add-stock-modal').closeModal();
 		$.ajax({
 			url:"/webapps7/stock/checkprice?" + $.param({
 				symbol: $('#buy-symbol-input').val()
@@ -111,9 +110,11 @@ function buyStock(rate1, rate2){
 			type: "GET",
 			success: function(response){
 				if(response.status=='failed'){
-					alert(response.errorMessage); 
+					$('#buy-symbol-input').addClass('invalid');
+					$('#buy-symbol-label').attr('data-error',response.errorMessage )
 					return;
 				} else {
+					$('#add-stock-modal').closeModal();
 					var price = response.price;
 					if($('#buy-symbol-input').val().toUpperCase().indexOf('NSE') >= 0){
 						var converted = (Number($('#buy-share-input').val())*price/Number(rate1)).toFixed(2);
@@ -127,10 +128,10 @@ function buyStock(rate1, rate2){
 						var total = shares*price;
 						$('#confirm-buy-cost').text(total.toFixed(2));
 					}
+					$('#buy-stock-confirm-modal').openModal();
 				}
 			}
 		})
-		$('#buy-stock-confirm-modal').openModal();
 	}
 }
 

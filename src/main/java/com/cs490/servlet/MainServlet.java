@@ -921,6 +921,13 @@ public class MainServlet extends HttpServlet {
 			return;
 		}
 		String symbol = request.getParameter("symbol").toUpperCase();
+		String[] allowedArray = ALLOWED_STOCKS.split(",");
+		if(!Arrays.asList(allowedArray).contains(symbol)){
+			json.addProperty("status", "failed");
+			json.addProperty("errorMessage", "Stock not allowed.");
+			response.getWriter().write(json.toString());
+			return;
+		}
 		StockVO stock = new StockVO(symbol);
 		BigDecimal price = stock.getPrice();
 		json.addProperty("status", "success");
