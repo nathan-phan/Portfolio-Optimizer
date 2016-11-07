@@ -1,10 +1,5 @@
 package com.cs490.servlet;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -15,11 +10,12 @@ import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -31,7 +27,6 @@ import org.jasypt.util.text.BasicTextEncryptor;
 
 import com.cs490.dao.PortfolioDAO;
 import com.cs490.dao.UserDAO;
-import com.cs490.vo.GoogleSheetVO;
 import com.cs490.vo.PortfolioReportVO;
 import com.cs490.vo.PortfolioVO;
 import com.cs490.vo.RecordVO;
@@ -133,6 +128,18 @@ public class MainServlet extends HttpServlet {
 
 	public static final String CURRENCY_API_KEY = "da54f57878f7a80edcfce214d7889683";
 
+	public LinkedHashMap<String, Double> covarianceMap;
+	public LinkedHashMap<String, Double> returnMap;
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public void init(ServletConfig sc) throws ServletException {
+		super.init(sc);
+		ServletContext context = getServletContext();
+		covarianceMap =  (LinkedHashMap<String,Double>) context.getAttribute("covarianceMap");
+		returnMap =  (LinkedHashMap<String,Double>) context.getAttribute("returnMap");
+	}
+	
 	@Override																	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); 
@@ -1109,36 +1116,6 @@ public class MainServlet extends HttpServlet {
 	}
 
 	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException, ServiceException, GeneralSecurityException, URISyntaxException {
-		ClassLoader classLoader = getClass().getClassLoader();
-		File excelFile = new File(classLoader.getResource("returns.csv").toURI());
-		BufferedReader br = null;
-		String line = "";
-		String cvsSplitBy = ",";
-
-		try {
-
-			br = new BufferedReader(new FileReader(excelFile));
-			while ((line = br.readLine()) != null) {
-				// use comma as separator
-				String[] pair = line.split(cvsSplitBy);
-				System.out.println("Stock [name= " + pair[0] + " , return=" + pair[1] + "] . Inserting...");
-				if(!PortfolioDAO.insertExpectedReturns(pair[0], Double.parseDouble(pair[1]))){
-					System.out.println("Failed to insert Stock [name= " + pair[0] + " , return=" + pair[1] + "] . Inserting...");
-				}
-			}
-
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} finally {
-			if (br != null) {
-				try {
-					br.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
+		
 	}
 }

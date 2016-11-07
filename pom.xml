@@ -131,6 +131,7 @@
 				<directory>${basedir}/src/main/resources</directory>
 				<includes>
 					<include>returns.csv</include>
+					<include>covariances.csv</include>
 					<include>mysql.properties</include>
 					<include>Portfolio Gorilla-516a29ef99d3.p12</include>
 				</includes>
