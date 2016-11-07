@@ -104,6 +104,16 @@
 			<artifactId>choco-solver</artifactId>
 			<version>4.0.0</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.15</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>3.15</version>
+		</dependency>
 
 	</dependencies>
 	<build>
@@ -131,8 +141,10 @@
 			<resource>
 				<directory>${basedir}/src/main/resources</directory>
 				<includes>
+					<include>covariances.xlsx</include>
+					<include>returns.xlsx</include>
 					<include>mysql.properties</include>
-					<include>portfolio.p12</include>
+					<include>Portfolio Gorilla-516a29ef99d3.p12</include>
 				</includes>
 				<filtering>true</filtering>
 			</resource>

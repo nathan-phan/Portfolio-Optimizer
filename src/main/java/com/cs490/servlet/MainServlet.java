@@ -1,5 +1,6 @@
 package com.cs490.servlet;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -1103,7 +1104,8 @@ public class MainServlet extends HttpServlet {
 	}
 
 	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException, ServiceException, GeneralSecurityException, URISyntaxException{
-		GoogleSheetVO sheet = new GoogleSheetVO();
-		sheet.updateCellA1Input("hey there", "A9", "10");
+		ClassLoader classLoader = getClass().getClassLoader();
+		File p12 = new File(classLoader.getResource("Portfolio Gorilla-516a29ef99d3.p12").toURI());
+		
 	}
 }
