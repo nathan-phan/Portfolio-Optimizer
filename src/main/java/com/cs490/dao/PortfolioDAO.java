@@ -1055,4 +1055,31 @@ public class PortfolioDAO {
 		}
 		return profit;
 	}
+	
+	public static boolean insertExpectedReturns(String symbol, double returnVal) throws SQLException {
+		boolean result = false;
+		Connection connection = null;
+		try {
+			connection = new MySqlConnector().getConnection();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		PreparedStatement prepStmt = null;
+		try {
+				String query =  "INSERT INTO stock_returns(symbol,expected_return) VALUES(?,?)";
+				prepStmt = connection.prepareStatement(query);
+				prepStmt.setString(1,symbol);
+				prepStmt.setDouble(2, returnVal);
+				prepStmt.executeUpdate();
+				prepStmt.close();
+			result = true;
+		} catch(Exception e){
+			e.printStackTrace();
+			return result;
+		} finally {
+			connection.close();
+		}
+		return result;
+	}
 }

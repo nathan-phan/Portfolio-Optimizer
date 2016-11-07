@@ -1,6 +1,10 @@
 package com.cs490.servlet;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -11,6 +15,7 @@ import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 import javax.mail.MessagingException;
@@ -1103,9 +1108,37 @@ public class MainServlet extends HttpServlet {
 		return true;
 	}
 
-	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException, ServiceException, GeneralSecurityException, URISyntaxException{
+	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException, ServiceException, GeneralSecurityException, URISyntaxException {
 		ClassLoader classLoader = getClass().getClassLoader();
-		File p12 = new File(classLoader.getResource("Portfolio Gorilla-516a29ef99d3.p12").toURI());
-		
+		File excelFile = new File(classLoader.getResource("returns.csv").toURI());
+		BufferedReader br = null;
+		String line = "";
+		String cvsSplitBy = ",";
+
+		try {
+
+			br = new BufferedReader(new FileReader(excelFile));
+			while ((line = br.readLine()) != null) {
+				// use comma as separator
+				String[] pair = line.split(cvsSplitBy);
+				System.out.println("Stock [name= " + pair[0] + " , return=" + pair[1] + "] . Inserting...");
+				if(!PortfolioDAO.insertExpectedReturns(pair[0], Double.parseDouble(pair[1]))){
+					System.out.println("Failed to insert Stock [name= " + pair[0] + " , return=" + pair[1] + "] . Inserting...");
+				}
+			}
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 }
