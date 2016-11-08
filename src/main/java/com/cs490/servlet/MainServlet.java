@@ -130,7 +130,7 @@ public class MainServlet extends HttpServlet {
 
 	public LinkedHashMap<String, Double> covarianceMap;
 	public LinkedHashMap<String, Double> returnMap;
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public void init(ServletConfig sc) throws ServletException {
@@ -139,7 +139,7 @@ public class MainServlet extends HttpServlet {
 		covarianceMap =  (LinkedHashMap<String,Double>) context.getAttribute("covarianceMap");
 		returnMap =  (LinkedHashMap<String,Double>) context.getAttribute("returnMap");
 	}
-	
+
 	@Override																	
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); 
@@ -1123,6 +1123,62 @@ public class MainServlet extends HttpServlet {
 	}
 
 	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException, ServiceException, GeneralSecurityException, URISyntaxException {
-		
+		String[] stocks = {"MMM","AAPL","IBM","V","NSE:ACC","E5H.SI","N03.SI","JOBS","ATV","CAT"};
+		Double[][] weights = new Double[1][10];
+		weights[0][0] = 0.1;
+		weights[0][1] = 0.1;
+		weights[0][2] = 0.1;
+		weights[0][3] = 0.1;
+		weights[0][4] = 0.1;
+		weights[0][5] = 0.1;
+		weights[0][6] = 0.1;
+		weights[0][7] = 0.1;
+		weights[0][8] = 0.1;
+		weights[0][9] = 0.1;
+		Double[][] transposed = matrixTranspose(weights);
+		Double[][] covMatrix = new Double[stocks.length][stocks.length];
+		for(int i = 0; i < stocks.length; i++) {
+			for(int j = 0; j < stocks.length; j++) {
+				String pair = stocks[i] + "-" + stocks[j];
+				covMatrix[i][j] = covarianceMap.get(pair);
+			}
+		}
+		Double[][] temp = matrixMultiplication(weights, covMatrix);
+		Double[][] cov = matrixMultiplication(temp, transposed);
+		System.out.println("covariance is "+ cov[0][0]);
+ 	}
+
+
+	public static Double[][] matrixMultiplication(Double[][] a, Double[][] b) {
+		int aRows = a.length;
+		int aColumns = a[0].length;
+		int bRows = b.length;
+		int bColumns = b[0].length;
+
+		if (aColumns != bRows) {
+			throw new IllegalArgumentException("A:Rows: " + aColumns + " did not match B:Columns " + bRows + ".");
+		}
+		Double[][] c = new Double[aRows][bColumns];
+		for (int i = 0; i < aRows; i++) {
+			for (int j = 0; j < bColumns; j++) {
+				c[i][j] = 0.00000;
+			}
+		}
+		for (int i = 0; i < aRows; i++) { // aRow
+			for (int j = 0; j < bColumns; j++) { // bColumn
+				for (int k = 0; k < aColumns; k++) { // aColumn
+					c[i][j] += a[i][k] * b[k][j];
+				}
+			}
+		}
+		return c;
+	}
+
+	public static Double[][] matrixTranspose(Double [][] m){
+		Double[][] temp = new Double[m[0].length][m.length];
+		for (int i = 0; i < m.length; i++)
+			for (int j = 0; j < m[0].length; j++)
+				temp[j][i] = m[i][j];
+		return temp;
 	}
 }
