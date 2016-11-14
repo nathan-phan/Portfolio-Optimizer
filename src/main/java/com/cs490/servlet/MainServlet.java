@@ -23,6 +23,29 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.chocosolver.solver.Model;
+import org.chocosolver.solver.variables.IntVar;
+import org.chocosolver.util.tools.ArrayUtils;
+import org.jacop.constraints.Constraint;
+import org.jacop.core.Store;
+import org.jacop.core.Var;
+import org.jacop.floats.constraints.LinearFloat;
+import org.jacop.floats.constraints.Min;
+import org.jacop.floats.constraints.PdivQeqR;
+import org.jacop.floats.constraints.PmulCeqR;
+import org.jacop.floats.constraints.PmulQeqR;
+import org.jacop.floats.constraints.PplusQeqR;
+import org.jacop.floats.constraints.SinPeqR;
+import org.jacop.floats.core.FloatDomain;
+import org.jacop.floats.core.FloatVar;
+import org.jacop.floats.search.Optimize;
+import org.jacop.floats.search.SmallestDomainFloat;
+import org.jacop.floats.search.SplitSelectFloat;
+import org.jacop.search.DepthFirstSearch;
+import org.jacop.search.PrintOutListener;
+import org.jacop.search.Search;
+import org.jacop.search.SelectChoicePoint;
+import org.jacop.search.SimpleSolutionListener;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 import com.cs490.dao.PortfolioDAO;
@@ -1123,30 +1146,37 @@ public class MainServlet extends HttpServlet {
 	}
 
 	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException, ServiceException, GeneralSecurityException, URISyntaxException {
-		String[] stocks = {"MMM","AAPL","IBM","V","NSE:ACC","E5H.SI","N03.SI","JOBS","ATV","CAT"};
-		Double[][] weights = new Double[1][10];
-		weights[0][0] = 0.1;
-		weights[0][1] = 0.1;
-		weights[0][2] = 0.1;
-		weights[0][3] = 0.1;
-		weights[0][4] = 0.1;
-		weights[0][5] = 0.1;
-		weights[0][6] = 0.1;
-		weights[0][7] = 0.1;
-		weights[0][8] = 0.1;
-		weights[0][9] = 0.1;
-		Double[][] transposed = matrixTranspose(weights);
-		Double[][] covMatrix = new Double[stocks.length][stocks.length];
-		for(int i = 0; i < stocks.length; i++) {
-			for(int j = 0; j < stocks.length; j++) {
-				String pair = stocks[i] + "-" + stocks[j];
-				covMatrix[i][j] = covarianceMap.get(pair);
-			}
-		}
-		Double[][] temp = matrixMultiplication(weights, covMatrix);
-		Double[][] cov = matrixMultiplication(temp, transposed);
-		System.out.println("covariance is "+ cov[0][0]);
- 	}
+		//		String[] stocks = {"MMM","AAPL","IBM","V","NSE:ACC","E5H.SI","N03.SI","JOBS","ATV","CAT"};
+		//		Double[][] weights = new Double[1][10];
+		//		weights[0][0] = 0.1;
+		//		weights[0][1] = 0.1;
+		//		weights[0][2] = 0.1;
+		//		weights[0][3] = 0.1;
+		//		weights[0][4] = 0.1;
+		//		weights[0][5] = 0.1;
+		//		weights[0][6] = 0.1;
+		//		weights[0][7] = 0.1;
+		//		weights[0][8] = 0.1;
+		//		weights[0][9] = 0.1;
+		//		double finalReturn = 0;
+		//		for(int i=0;i<stocks.length;i++) {
+		//			double ret = returnMap.get(stocks[i]);
+		//			finalReturn += ret*weights[0][i];
+		//		}
+		//		Double[][] transposed = matrixTranspose(weights);
+		//		Double[][] covMatrix = new Double[stocks.length][stocks.length];
+		//		for(int i = 0; i < stocks.length; i++) {
+		//			for(int j = 0; j < stocks.length; j++) {
+		//				String pair = stocks[i] + "-" + stocks[j];
+		//				covMatrix[i][j] = covarianceMap.get(pair);
+		//			}
+		//		}
+		//		Double[][] temp = matrixMultiplication(weights, covMatrix);
+		//		Double[][] cov = matrixMultiplication(temp, transposed);
+		//		System.out.println("covariance is "+ cov[0][0]);
+		//		System.out.println("return is "+ finalReturn);
+		jacopTest();
+	}
 
 
 	public static Double[][] matrixMultiplication(Double[][] a, Double[][] b) {
@@ -1180,5 +1210,63 @@ public class MainServlet extends HttpServlet {
 			for (int j = 0; j < m[0].length; j++)
 				temp[j][i] = m[i][j];
 		return temp;
+	}
+
+	public void jacopTest(){
+		FloatDomain.setPrecision(1.0e-5); 
+		FloatDomain.intervalPrint(false); 
+		Store store = new Store(); 
+		String[] stocks = {"GE","V"};
+		Double[][] covMatrix = new Double[stocks.length][stocks.length];
+		for(int i = 0; i < stocks.length; i++) {
+			for(int j = 0; j < stocks.length; j++) {
+				String pair = stocks[i] + "-" + stocks[j];
+				covMatrix[i][j] = covarianceMap.get(pair);
+			}
+		}
+		FloatVar w1 = new FloatVar(store, "w1", -1.0, 1.0); 
+		FloatVar w2 = new FloatVar(store, "w2", -1.0, 1.0); 
+		FloatVar zero = new FloatVar(store, 0,0); 
+		FloatVar one = new FloatVar(store,"one", 1.0,1.0);
+		// x*x + sin(1.0/(x*x*x)) = 0.0; 
+		FloatVar[] temp = new FloatVar[9]; 
+
+		for (int i=0; i<temp.length; i++) 
+			temp[i] = new FloatVar(store, "temp["+i+"]", -1e6, 1e6); 
+
+		store.impose(new PmulCeqR(w1, covMatrix[0][0], temp[0])); 
+		store.impose(new PmulCeqR(w2, covMatrix[1][0], temp[1])); 
+		store.impose(new PmulCeqR(w1, covMatrix[0][1], temp[2])); 
+		store.impose(new PmulCeqR(w2, covMatrix[1][1], temp[3])); 
+		store.impose(new PplusQeqR(temp[0], temp[1], temp[4]));
+		store.impose(new PplusQeqR(temp[2], temp[3], temp[5]));
+		store.impose(new PmulQeqR(temp[4], w1, temp[6])); 
+		store.impose(new PmulQeqR(temp[5], w2, temp[7]));
+		store.impose(new PplusQeqR(temp[6], temp[7], temp[8])); 
+		store.impose(new PplusQeqR(w1, w2, one));
+		int TIME_OUT_SECONDS = 10;
+		double MIN_FLOAT = -1e+150;
+		double MAX_FLOAT = 1e+150;
+		long T1, T2;
+		T1 = System.currentTimeMillis();
+		DepthFirstSearch<FloatVar> search = new DepthFirstSearch<FloatVar>(); 
+		SplitSelectFloat<FloatVar> select = new SplitSelectFloat<>(store, new FloatVar[]{w1,w2}, new SmallestDomainFloat<FloatVar>());
+		Optimize min = new Optimize(store, search, select, temp[8]);
+		boolean result = min.minimize();
+		search.setAssignSolution(true);
+		search.setPrintInfo(true);
+		search.setTimeOut(TIME_OUT_SECONDS);
+		search.getSolutionListener().searchAll(true);
+		search.labeling(store, select, temp[8]); 
+
+		T2 = System.currentTimeMillis();
+		System.out.println("\n\n*** Execution time = " + (T2 - T1) + " ms");
+		if (result) {
+			System.out.println("Solution found...");
+			System.out.println(temp[8]);
+			System.out.println();
+		} else {
+			System.out.println("No solution found.");
+		}
 	}
 }
