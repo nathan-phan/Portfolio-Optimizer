@@ -44,9 +44,9 @@
 	<div class="navbar-fixed lower-nav-bar">
 		<nav class='white'>
 			<div class='nav-bar-buttons right'>
-				<a class="waves-effect btn-flat nav-bar-button" id='home-button'
-					href='/webapps7/index'><i class=" material-icons left">home</i>
-					<span class='nav-bar-button-label'>Home</span> </a> <a
+				<a class="waves-effect btn-flat nav-bar-button" id='back-button'
+					href='/webapps7/portfolio/view?id=${param.id}'><i class="material-icons left">&#xE5CB;</i>
+					<span class='nav-bar-button-label'>Back</span> </a> <a
 					class="waves-effect btn-flat  nav-bar-button" href='/webapps7/portfolio/report/download?id=${param.id}' id='download-button'><i
 					class=" material-icons left">get_app</i> <span
 					class='nav-bar-button-label'>Download CSV</span> </a>

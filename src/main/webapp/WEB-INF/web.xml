@@ -97,6 +97,10 @@
 		<servlet-name>MainServlet</servlet-name>
 		<url-pattern>/webapps7/account/update</url-pattern>
 	</servlet-mapping>
+	<servlet-mapping>
+    <servlet-name>MainServlet</servlet-name>
+    <url-pattern>/webapps7/optimizer</url-pattern>
+  </servlet-mapping>
 	<listener>
 		<listener-class>com.cs490.listener.StockStatsGenerator</listener-class>
 	</listener>

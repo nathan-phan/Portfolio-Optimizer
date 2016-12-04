@@ -23,29 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.chocosolver.solver.Model;
-import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.util.tools.ArrayUtils;
-import org.jacop.constraints.Constraint;
-import org.jacop.core.Store;
-import org.jacop.core.Var;
-import org.jacop.floats.constraints.LinearFloat;
-import org.jacop.floats.constraints.Min;
-import org.jacop.floats.constraints.PdivQeqR;
-import org.jacop.floats.constraints.PmulCeqR;
-import org.jacop.floats.constraints.PmulQeqR;
-import org.jacop.floats.constraints.PplusQeqR;
-import org.jacop.floats.constraints.SinPeqR;
-import org.jacop.floats.core.FloatDomain;
-import org.jacop.floats.core.FloatVar;
-import org.jacop.floats.search.Optimize;
-import org.jacop.floats.search.SmallestDomainFloat;
-import org.jacop.floats.search.SplitSelectFloat;
-import org.jacop.search.DepthFirstSearch;
-import org.jacop.search.PrintOutListener;
-import org.jacop.search.Search;
-import org.jacop.search.SelectChoicePoint;
-import org.jacop.search.SimpleSolutionListener;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 import com.cs490.dao.PortfolioDAO;
@@ -61,7 +38,6 @@ import com.google.gdata.util.ServiceException;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-
 @WebServlet(name="MainServlet", displayName="MainServlet", urlPatterns= {
 		"/webapps7/stock/view", "/webapps7/login", "/webapps7/register", "/webapps7/forgotpass",
 		"/webapps7/authenticate", "/webapps7/index", "/webapps7/portfolio/add",
@@ -71,7 +47,7 @@ import com.google.gson.JsonObject;
 		"/webapps7/portfolio/delete", "/webapps7/portfolio/history",
 		"/webapps7/sheet/test", "/webapps7/portfolio/update","/webapps7/account/view",
 		"/webapps7/account/update", "/webapps7/stock/checkprice","/webapps7/portfolio/report",
-		"/webapps7/portfolio/report/download"
+		"/webapps7/portfolio/report/download", "/webapps7/optimizer"
 })
 public class MainServlet extends HttpServlet {
 	public static final long serialVersionUID = 389807010932642772L;
@@ -273,6 +249,19 @@ public class MainServlet extends HttpServlet {
 			}
 			try {
 				downloadCsv(request, response);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return;
+		}
+
+		if(request.getRequestURI().contains("/optimizer")){
+			if(!checkLoggedIn(request, response)){
+				request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
+				return;
+			}
+			try {
+				displayOptimizer(request, response);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -986,6 +975,90 @@ public class MainServlet extends HttpServlet {
 		request.getRequestDispatcher("/PortfolioReport.jsp").forward(request, response);
 	}
 
+	private void displayOptimizer(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException, CloneNotSupportedException {
+		int portfolioId = -1;
+		if(request.getParameter("id") != null) {
+			portfolioId = Integer.parseInt(request.getParameter("id"));
+		}
+		LinkedHashMap<String, Double> rates = PortfolioDAO.getExchangeRates();
+		request.setAttribute("usdinr", rates.get("USDINR"));
+		request.setAttribute("usdsgd", rates.get("USDSGD"));
+		String[] adrArray = ADR_STOCKS.split(",");
+		PortfolioVO portfolio = PortfolioDAO.getPortfolioById(portfolioId);
+		LinkedHashMap<StockVO, Integer> stocks = portfolio.getStocks();
+		BigDecimal totalStockValue = new BigDecimal(0);
+		LinkedHashMap<StockVO, BigDecimal> stockValues = new LinkedHashMap<StockVO, BigDecimal>();
+		for(StockVO stock : stocks.keySet()) {
+			int shares = stocks.get(stock);
+			if(stock.getCurrency().equals("INR")){
+				BigDecimal originalPrice = stock.getForeignPrice(); 
+				BigDecimal convertedPrice = originalPrice.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP);
+				stock.setPrice(convertedPrice);
+				BigDecimal prevClose = stock.getForeignPreviousClosingPrice();
+				BigDecimal foreignChange = stock.getForeignChange();
+				stock.setChange(foreignChange.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP));
+				stock.setPreviousClosingPrice(prevClose.divide(new BigDecimal(rates.get("USDINR")), 4, RoundingMode.HALF_UP));
+				totalStockValue = totalStockValue.add(convertedPrice.multiply(new BigDecimal(shares)));
+				stockValues.put(stock, convertedPrice.multiply(new BigDecimal(shares)));
+			} else if(stock.getCurrency().equals("SGD")){
+				BigDecimal originalPrice = stock.getForeignPrice(); 
+				BigDecimal convertedPrice = originalPrice.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP);
+				stock.setPrice(convertedPrice);
+				BigDecimal prevClose = stock.getForeignPreviousClosingPrice();
+				stock.setPreviousClosingPrice(prevClose.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP));
+				totalStockValue = totalStockValue.add(convertedPrice.multiply(new BigDecimal(shares)));
+				stockValues.put(stock,convertedPrice.multiply(new BigDecimal(shares)));
+				BigDecimal foreignChange = stock.getForeignChange();
+				stock.setChange(foreignChange.divide(new BigDecimal(rates.get("USDSGD")), 4, RoundingMode.HALF_UP));
+			} else if(Arrays.asList(adrArray).contains(stock.getSymbol())){
+				totalStockValue = totalStockValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
+				stockValues.put(stock,stock.getPrice().multiply(new BigDecimal(shares)));
+			} else {
+				totalStockValue = totalStockValue.add(stock.getPrice().multiply(new BigDecimal(shares)));
+				stockValues.put(stock,stock.getPrice().multiply(new BigDecimal(shares)));
+			}
+		}
+
+		ArrayList<StockVO> stockArray = new ArrayList<StockVO>();
+
+		for(StockVO stock : stocks.keySet()) {
+			double weight = stockValues.get(stock).divide(totalStockValue).doubleValue();
+			stock.setWeight(weight);
+			stockArray.add(stock);
+		}
+
+		Double[][] weights = new Double[1][stockArray.size()];
+
+		double finalReturn = 0;
+		for(int i=0;i<stockArray.size();i++) {
+			double ret = returnMap.get(stockArray.get(i).getSymbol());
+			weights[0][i]=stockArray.get(i).getWeight();
+			finalReturn += ret*stockArray.get(i).getWeight();
+		}
+		Double[][] transposed = matrixTranspose(weights);
+		Double[][] covMatrix = new Double[stockArray.size()][stockArray.size()];
+		for(int i = 0; i < stockArray.size(); i++) {
+			for(int j = 0; j < stockArray.size(); j++) {
+				String pair = stockArray.get(i).getSymbol() + "-" + stockArray.get(j).getSymbol();
+				covMatrix[i][j] = covarianceMap.get(pair);
+			}
+		}
+		Double[][] temp = matrixMultiplication(weights, covMatrix);
+		Double[][] cov = matrixMultiplication(temp, transposed);
+
+		response.getWriter().println("covariance is "+ cov[0][0]);
+		response.getWriter().println("return is "+ finalReturn);
+
+		portfolio.setStocks(stocks);
+		if(totalStockValue.compareTo(new BigDecimal(0)) == 1){
+			request.setAttribute("size", stocks.size());
+		}
+		request.setAttribute("totalValue", totalStockValue);
+		request.setAttribute("size", stocks.size());
+		request.setAttribute("portfolio", portfolio);
+		request.getRequestDispatcher("/Optimizer.jsp").forward(request, response);
+	}
+
 	private void downloadCsv(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException{
 		if(request.getParameter("id") == null) {
 			request.getRequestDispatcher("/LogIn.jsp").forward(request, response);
@@ -1146,36 +1219,7 @@ public class MainServlet extends HttpServlet {
 	}
 
 	private void doSheetTest(HttpServletRequest request, HttpServletResponse response) throws IOException, SQLException, ServletException, CloneNotSupportedException, ServiceException, GeneralSecurityException, URISyntaxException {
-		//		String[] stocks = {"MMM","AAPL","IBM","V","NSE:ACC","E5H.SI","N03.SI","JOBS","ATV","CAT"};
-		//		Double[][] weights = new Double[1][10];
-		//		weights[0][0] = 0.1;
-		//		weights[0][1] = 0.1;
-		//		weights[0][2] = 0.1;
-		//		weights[0][3] = 0.1;
-		//		weights[0][4] = 0.1;
-		//		weights[0][5] = 0.1;
-		//		weights[0][6] = 0.1;
-		//		weights[0][7] = 0.1;
-		//		weights[0][8] = 0.1;
-		//		weights[0][9] = 0.1;
-		//		double finalReturn = 0;
-		//		for(int i=0;i<stocks.length;i++) {
-		//			double ret = returnMap.get(stocks[i]);
-		//			finalReturn += ret*weights[0][i];
-		//		}
-		//		Double[][] transposed = matrixTranspose(weights);
-		//		Double[][] covMatrix = new Double[stocks.length][stocks.length];
-		//		for(int i = 0; i < stocks.length; i++) {
-		//			for(int j = 0; j < stocks.length; j++) {
-		//				String pair = stocks[i] + "-" + stocks[j];
-		//				covMatrix[i][j] = covarianceMap.get(pair);
-		//			}
-		//		}
-		//		Double[][] temp = matrixMultiplication(weights, covMatrix);
-		//		Double[][] cov = matrixMultiplication(temp, transposed);
-		//		System.out.println("covariance is "+ cov[0][0]);
-		//		System.out.println("return is "+ finalReturn);
-		jacopTest();
+
 	}
 
 
@@ -1212,61 +1256,67 @@ public class MainServlet extends HttpServlet {
 		return temp;
 	}
 
-	public void jacopTest(){
-		FloatDomain.setPrecision(1.0e-5); 
-		FloatDomain.intervalPrint(false); 
-		Store store = new Store(); 
-		String[] stocks = {"GE","V"};
-		Double[][] covMatrix = new Double[stocks.length][stocks.length];
-		for(int i = 0; i < stocks.length; i++) {
-			for(int j = 0; j < stocks.length; j++) {
-				String pair = stocks[i] + "-" + stocks[j];
-				covMatrix[i][j] = covarianceMap.get(pair);
-			}
-		}
-		FloatVar w1 = new FloatVar(store, "w1", -1.0, 1.0); 
-		FloatVar w2 = new FloatVar(store, "w2", -1.0, 1.0); 
-		FloatVar zero = new FloatVar(store, 0,0); 
-		FloatVar one = new FloatVar(store,"one", 1.0,1.0);
-		// x*x + sin(1.0/(x*x*x)) = 0.0; 
-		FloatVar[] temp = new FloatVar[9]; 
-
-		for (int i=0; i<temp.length; i++) 
-			temp[i] = new FloatVar(store, "temp["+i+"]", -1e6, 1e6); 
-
-		store.impose(new PmulCeqR(w1, covMatrix[0][0], temp[0])); 
-		store.impose(new PmulCeqR(w2, covMatrix[1][0], temp[1])); 
-		store.impose(new PmulCeqR(w1, covMatrix[0][1], temp[2])); 
-		store.impose(new PmulCeqR(w2, covMatrix[1][1], temp[3])); 
-		store.impose(new PplusQeqR(temp[0], temp[1], temp[4]));
-		store.impose(new PplusQeqR(temp[2], temp[3], temp[5]));
-		store.impose(new PmulQeqR(temp[4], w1, temp[6])); 
-		store.impose(new PmulQeqR(temp[5], w2, temp[7]));
-		store.impose(new PplusQeqR(temp[6], temp[7], temp[8])); 
-		store.impose(new PplusQeqR(w1, w2, one));
-		int TIME_OUT_SECONDS = 10;
-		double MIN_FLOAT = -1e+150;
-		double MAX_FLOAT = 1e+150;
-		long T1, T2;
-		T1 = System.currentTimeMillis();
-		DepthFirstSearch<FloatVar> search = new DepthFirstSearch<FloatVar>(); 
-		SplitSelectFloat<FloatVar> select = new SplitSelectFloat<>(store, new FloatVar[]{w1,w2}, new SmallestDomainFloat<FloatVar>());
-		Optimize min = new Optimize(store, search, select, temp[8]);
-		boolean result = min.minimize();
-		search.setAssignSolution(true);
-		search.setPrintInfo(true);
-		search.setTimeOut(TIME_OUT_SECONDS);
-		search.getSolutionListener().searchAll(true);
-		search.labeling(store, select, temp[8]); 
-
-		T2 = System.currentTimeMillis();
-		System.out.println("\n\n*** Execution time = " + (T2 - T1) + " ms");
-		if (result) {
-			System.out.println("Solution found...");
-			System.out.println(temp[8]);
-			System.out.println();
-		} else {
-			System.out.println("No solution found.");
-		}
-	}
+	//	public void jacopTest(){
+	//		FloatDomain.setPrecision(1.0e-4); 
+	//		Store store = new Store(); 
+	//		String[] stocks = {"MMM","AAPL","GE"} ;
+	//		//		String[] stocks = {"MMM","AAPL","GE","V","NSE:ACC","E5H.SI","N03.SI","JOBS","BA","VZ"};
+	//		Double[][] covMatrix = new Double[stocks.length][stocks.length];
+	//		FloatVar[] weights = new FloatVar[stocks.length]; 
+	//		FloatVar[] weightproducts = new FloatVar[stocks.length*stocks.length]; 
+	//		FloatVar[] finalEntries = new FloatVar[stocks.length*stocks.length];
+	//		FloatVar[] sums = new FloatVar[stocks.length*stocks.length - 1];
+	//		double[] ones = new double[stocks.length];
+	//		for(int i = 0; i < stocks.length; i++) {
+	//			for(int j = 0; j < stocks.length; j++) {
+	//				String pair = stocks[i] + "-" + stocks[j];
+	//				covMatrix[i][j] = covarianceMap.get(pair);
+	//			}
+	//			weights[i] = new FloatVar(store, "w"+i, -1.0, 1.0);
+	//			ones[i] = 1;
+	//		}
+	//		store.impose(new LinearFloat(store, weights, ones, "==", 1.0)); 
+	//		for (int x = 0; x<stocks.length*stocks.length - 1;x++) {
+	//			sums[x] = new FloatVar(store, "sums"+x,  -0.01, 0.01);
+	//		}
+	//		int count = 0;
+	//		for(int i = 0; i < stocks.length; i++) {
+	//			for(int j = 0; j < stocks.length; j++) {
+	//				weightproducts[count] = new FloatVar(store, "var"+ count, -1.0, 1.0);
+	//				finalEntries[count] = new FloatVar(store, "final"+i,  -0.01, 0.01);
+	//				store.impose(new PmulQeqR(weights[i], weights[j], weightproducts[count]));
+	//				double cov = covMatrix[i][j] ;
+	//				store.impose(new PmulCeqR(weightproducts[count], cov, finalEntries[count]));
+	//				count++;
+	//			}
+	//		}
+	//		store.impose(new PplusQeqR(finalEntries[0], finalEntries[1], sums[0]));
+	//		for(int i=1; i< count - 1; i++){
+	//			store.impose(new PplusQeqR(finalEntries[i+1], sums[i-1], sums[i]));
+	//		}
+	//
+	//		// x*x + sin(1.0/(x*x*x)) = 0.0; 
+	//		int TIME_OUT_SECONDS = 10;
+	//		long T1, T2;
+	//		T1 = System.currentTimeMillis();
+	//		DepthFirstSearch<FloatVar> search = new DepthFirstSearch<FloatVar>(); 
+	//		SplitSelectFloat<FloatVar> select = new SplitSelectFloat<>(store, weights, new SmallestDomainFloat<FloatVar>());
+	//		Optimize min = new Optimize(store, search, select, sums[count-2]);
+	//		boolean result = min.minimize();
+	//		search.setAssignSolution(true);
+	//		search.setPrintInfo(true);
+	//		search.setTimeOut(TIME_OUT_SECONDS);
+	//		search.getSolutionListener().searchAll(true);
+	//		search.labeling(store, select,sums[count-2]); 
+	//
+	//		T2 = System.currentTimeMillis();
+	//		System.out.println("\n\n*** Execution time = " + (T2 - T1) + " ms");
+	//		if (result) {
+	//			System.out.println("Solution found...");
+	//			System.out.println(sums[count-2]);
+	//			System.out.println();
+	//		} else {
+	//			System.out.println("No solution found.");
+	//		}
+	//	}
 }

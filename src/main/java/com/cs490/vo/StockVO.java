@@ -24,6 +24,7 @@ public class StockVO {
 	private BigDecimal previousClosingPrice;
 	private BigDecimal foreignPreviousClosingPrice;
 	private String currency;
+	private double weight;
 
 	public StockVO(String symbol) throws JsonParseException, JsonMappingException, IOException{
 		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
@@ -142,6 +143,14 @@ public class StockVO {
 
 	public void setForeignChange(BigDecimal foreignChange) {
 		this.foreignChange = foreignChange;
+	}
+
+	public double getWeight() {
+		return weight;
+	}
+
+	public void setWeight(double weight) {
+		this.weight = weight;
 	}
 	
 }

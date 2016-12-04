@@ -74,7 +74,8 @@
 					class="waves-effect btn-flat nav-bar-button" href='/webapps7/portfolio/report?id=${portfolio.id}' id='report-button'><i
 					class=" material-icons left">assessment</i> <span
 					class='nav-bar-button-label'>Report</span> </a> <a
-					class="waves-effect btn-flat  nav-bar-button" id='optimizer-button'><i
+					href='/webapps7/optimizer?id=${param.id }'
+					class="waves-effect btn-flat nav-bar-button" id='optimizer-button'><i
 					class=" material-icons left">assignment</i> <span
 					class='nav-bar-button-label'>Optimizer</span> </a>
 			</div>
