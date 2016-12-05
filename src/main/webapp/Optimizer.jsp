@@ -76,8 +76,7 @@
 						<c:forEach items='${stockArray }' var='stock'>
 							<div class='row ex-return-row'>
 								<div class='col s3 bold'>
-									<span class='blue white-text'><c:out
-											value='${stock.symbol}' /></span>
+									<span class=''><c:out value='${stock.symbol}' /></span>
 									<c:out value='${stock.name}' />
 								</div>
 								<div class='col s2'>
@@ -95,8 +94,9 @@
 								</div>
 							</div>
 						</c:forEach>
-						<div class='row'>
-							<div class='col s3 bold'>Portfolio Overall</div>
+						<br>
+						<div class='row blue white-text'>
+							<div class='col s3 bold '>Portfolio Overall</div>
 							<div class='col s2'>1</div>
 							<div class='col s7'>
 								<fmt:formatNumber type="number" minFractionDigits="7"
@@ -104,6 +104,7 @@
 							</div>
 						</div>
 						<br>
+
 						<div class='row'>
 							<div class='col s12 bold opt-header'>Portfolio Covariances</div>
 						</div>
@@ -120,13 +121,36 @@
 								<c:forEach items='${covMatrix[loop.index]}' var='covVal'
 									varStatus='loop2'>
 									<div class='col s1 bold'>
-									<span class=''></span>
-										<fmt:formatNumber type="number" minFractionDigits="7"
-											maxFractionDigits="7" value="${covVal}" />
+										<span class='${covVal lt 0? "green-text":"red-text" }'>
+											<fmt:formatNumber type="number" minFractionDigits="7"
+												maxFractionDigits="7" value="${covVal}" />
+										</span>
 									</div>
 								</c:forEach>
 							</div>
 						</c:forEach>
+						<br>
+						<div class='row blue white-text'>
+							<div class='col s2 bold'>Portfolio Variance</div>
+							<div class='col s3 bold'>
+								<fmt:formatNumber type="number" minFractionDigits="7"
+									maxFractionDigits="7" value='${variance}' />
+							</div>
+						</div>
+            <br>
+						<div class='row'>
+							<div class='col s12 bold opt-header'>Stock suggestions (low
+								covariances)</div>
+						</div>
+
+						<div class='row'>
+							<c:forEach items='${stockArray }' var='stock'>
+								<div class='col s2 bold'>${stock.symbol }</div>
+								<div class='col s10 bold'>
+									<c:forEach items='${stock.compatibleStocks }' var='compStock'><span class='blue darken-4 white-text'>&nbsp; ${compStock} &nbsp;</span> </c:forEach>
+								</div>
+							</c:forEach>
+						</div>
 					</c:otherwise>
 				</c:choose>
 			</div>
