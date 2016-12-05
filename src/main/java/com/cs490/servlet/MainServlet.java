@@ -11,6 +11,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.TreeMap;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.AddressException;
@@ -129,6 +130,7 @@ public class MainServlet extends HttpServlet {
 
 	public LinkedHashMap<String, Double> covarianceMap;
 	public LinkedHashMap<String, Double> returnMap;
+	public LinkedHashMap<String, ArrayList<String>> bestStocks;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -137,6 +139,7 @@ public class MainServlet extends HttpServlet {
 		ServletContext context = getServletContext();
 		covarianceMap =  (LinkedHashMap<String,Double>) context.getAttribute("covarianceMap");
 		returnMap =  (LinkedHashMap<String,Double>) context.getAttribute("returnMap");
+		bestStocks =  (LinkedHashMap<String,ArrayList<String>>) context.getAttribute("bestStocks");
 	}
 
 	@Override																	
@@ -1020,39 +1023,44 @@ public class MainServlet extends HttpServlet {
 		}
 
 		ArrayList<StockVO> stockArray = new ArrayList<StockVO>();
-
-		for(StockVO stock : stocks.keySet()) {
-			double weight = stockValues.get(stock).divide(totalStockValue).doubleValue();
-			stock.setWeight(weight);
-			stockArray.add(stock);
-		}
-
-		Double[][] weights = new Double[1][stockArray.size()];
-
-		double finalReturn = 0;
-		for(int i=0;i<stockArray.size();i++) {
-			double ret = returnMap.get(stockArray.get(i).getSymbol());
-			weights[0][i]=stockArray.get(i).getWeight();
-			finalReturn += ret*stockArray.get(i).getWeight();
-		}
-		Double[][] transposed = matrixTranspose(weights);
-		Double[][] covMatrix = new Double[stockArray.size()][stockArray.size()];
-		for(int i = 0; i < stockArray.size(); i++) {
-			for(int j = 0; j < stockArray.size(); j++) {
-				String pair = stockArray.get(i).getSymbol() + "-" + stockArray.get(j).getSymbol();
-				covMatrix[i][j] = covarianceMap.get(pair);
+		if(totalStockValue.compareTo(new BigDecimal(0)) == 1){
+			for(StockVO stock : stocks.keySet()) {
+				double weight = stockValues.get(stock).divide(totalStockValue,RoundingMode.HALF_UP).floatValue();
+				stock.setWeight(weight);
+				ArrayList<String> compatibleStocks = bestStocks.get(stock.getSymbol());
+				stock.setCompatibleStocks(compatibleStocks);
+				stockArray.add(stock);
 			}
+			Double[][] weights = new Double[1][stockArray.size()];
+			
+			double finalReturn = 0;
+			for(int i=0;i<stockArray.size();i++) {
+				double ret = returnMap.get(stockArray.get(i).getSymbol());
+				stockArray.get(i).setExpectedReturn(ret);
+				weights[0][i]=stockArray.get(i).getWeight();
+				finalReturn += ret*stockArray.get(i).getWeight();
+			}
+			Double[][] transposed = matrixTranspose(weights);
+			Double[][] covMatrix = new Double[stockArray.size()][stockArray.size()];
+			for(int i = 0; i < stockArray.size(); i++) {
+				for(int j = 0; j < stockArray.size(); j++) {
+					String pair = stockArray.get(i).getSymbol() + "-" + stockArray.get(j).getSymbol();
+					covMatrix[i][j] = covarianceMap.get(pair);
+				}
+			}
+			Double[][] temp = matrixMultiplication(weights, covMatrix);
+			Double[][] cov = matrixMultiplication(temp, transposed);
+			request.setAttribute("variance", cov[0][0]);
+			request.setAttribute("covMatrix", covMatrix);
+			request.setAttribute("expectedReturn", finalReturn);
 		}
-		Double[][] temp = matrixMultiplication(weights, covMatrix);
-		Double[][] cov = matrixMultiplication(temp, transposed);
 
-		response.getWriter().println("covariance is "+ cov[0][0]);
-		response.getWriter().println("return is "+ finalReturn);
 
 		portfolio.setStocks(stocks);
 		if(totalStockValue.compareTo(new BigDecimal(0)) == 1){
-			request.setAttribute("size", stocks.size());
+			request.setAttribute("size", stockArray.size());
 		}
+		request.setAttribute("stockArray", stockArray);
 		request.setAttribute("totalValue", totalStockValue);
 		request.setAttribute("size", stocks.size());
 		request.setAttribute("portfolio", portfolio);

@@ -423,6 +423,36 @@ label[data-error]:after {
 	background-color: #e5e5e5;
 }
 
+.optimizer-container {
+	position: absolute;
+  top: 140px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#opt-back-button {
+	position: relative;
+	top: 7px;
+}
+
+.opt-header {
+	font-size: 1.2em;
+}
+
+.ex-return-row:hover {
+	font-style: italic;
+	background-color: #e5e5e5;
+}
+
+.red-text {
+	color: red;
+}
+
+.green-text {
+	color: green;
+}
+
 @media only screen and (max-width: 1400px) {
 	.login-card {
 		margin-top: 5%;

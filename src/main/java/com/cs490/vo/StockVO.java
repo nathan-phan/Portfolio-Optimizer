@@ -2,6 +2,7 @@ package com.cs490.vo;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import com.cs490.dao.PortfolioDAO;
@@ -25,6 +26,8 @@ public class StockVO {
 	private BigDecimal foreignPreviousClosingPrice;
 	private String currency;
 	private double weight;
+	private double expectedReturn;
+	private ArrayList<String> compatibleStocks = new ArrayList<String>();
 
 	public StockVO(String symbol) throws JsonParseException, JsonMappingException, IOException{
 		String[] niftyArray = MainServlet.NIFTY_STOCKS.split(",");
@@ -41,6 +44,7 @@ public class StockVO {
 			this.name = stock.getName();
 			this.foreignPrice = stock.getPrice();
 			this.currency = "INR";
+			weight=0;
 		} else {
 			Stock stock = YahooFinance.get(symbol);
 			this.symbol = symbol;
@@ -54,6 +58,7 @@ public class StockVO {
 			this.previousClosingPrice = stock.getQuote().getPreviousClose();
 			this.name = stock.getName();
 			this.currency = symbol.contains(".SI") ? "SGD":"USD";
+			weight=0;
 		}
 	}
 
@@ -151,6 +156,22 @@ public class StockVO {
 
 	public void setWeight(double weight) {
 		this.weight = weight;
+	}
+
+	public double getExpectedReturn() {
+		return expectedReturn;
+	}
+
+	public void setExpectedReturn(double expectedReturn) {
+		this.expectedReturn = expectedReturn;
+	}
+
+	public ArrayList<String> getCompatibleStocks() {
+		return compatibleStocks;
+	}
+
+	public void setCompatibleStocks(ArrayList<String> compatibleStocks) {
+		this.compatibleStocks = compatibleStocks;
 	}
 	
 }

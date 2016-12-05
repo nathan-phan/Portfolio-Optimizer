@@ -6,14 +6,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
-
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
-import com.cs490.dao.PortfolioDAO;
 
 public class StockStatsGenerator implements ServletContextListener {
 
@@ -33,6 +31,7 @@ public class StockStatsGenerator implements ServletContextListener {
 		String line = "";
 		String cvsSplitBy = ",";
 		LinkedHashMap<String, Double> covMap = new LinkedHashMap<String, Double>();
+		LinkedHashMap<String, ArrayList<String>> bestStocks = new LinkedHashMap<String,  ArrayList<String>>();
 		LinkedHashMap<String, Double> returnMap = new LinkedHashMap<String, Double>();
 		try {
 			ArrayList<String> stocks = new ArrayList<String>();
@@ -47,18 +46,32 @@ public class StockStatsGenerator implements ServletContextListener {
 					continue;
 				}
 				String pair="";
+				ArrayList<Double> covArray = new ArrayList<Double>();
+				ArrayList<String> tempBestStocks = new ArrayList<String>();
+				LinkedHashMap<Double, String> tempCovMap = new LinkedHashMap<Double, String>();
 				for(int i=1;i<tokens.length;i++){
 					pair = tokens[0] + "-" + stocks.get(i-1);
 					double cov = Double.parseDouble(tokens[i]);
 					covMap.put(pair, cov);
+					tempCovMap.put(cov, stocks.get(i-1));
+					covArray.add(cov);
 				}
+				Collections.sort(covArray);
+				for(int i=0;i<3;i++) {
+					double tempCov = covArray.get(i);
+					String stockSym = tempCovMap.get(tempCov);
+					tempBestStocks.add(stockSym);
+				}
+				bestStocks.put(tokens[0], tempBestStocks);
 			}
 			br = new BufferedReader(new FileReader(returnFile));
 			while ((line = br.readLine()) != null) {
 				String[] pair = line.split(cvsSplitBy);
 				returnMap.put(pair[0], Double.parseDouble(pair[1]));
 			}
+			
 			sce.getServletContext().setAttribute("returnMap", returnMap);
+			sce.getServletContext().setAttribute("bestStocks", bestStocks);
 			sce.getServletContext().setAttribute("covarianceMap", covMap);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
